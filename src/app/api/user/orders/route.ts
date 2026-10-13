@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { auth } from "@/auth";
 
+export const dynamic = "force-dynamic"; // ✅ Fix Prerendering Warning
+
 export async function GET() {
   try {
     const session = await auth();
@@ -17,7 +19,6 @@ export async function GET() {
 
     await connectDB();
 
-    // 🌟 শুধু লগইন করা ইউজারের ইমেইল দিয়ে ডাটাবেস থেকে অর্ডার খোঁজা হচ্ছে
     const rawOrders = await Order.find({ email: email.trim().toLowerCase() })
       .sort({ createdAt: -1 })
       .lean();

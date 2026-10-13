@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import Order from "@/models/Order";
 import { auth } from "@/auth";
 
+export const dynamic = "force-dynamic"; // ✅ Fix Prerendering Warning
+
 type LeanOrder = {
   _id: { toString(): string };
   orderId: string;

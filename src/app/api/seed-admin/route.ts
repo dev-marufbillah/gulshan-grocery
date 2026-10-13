@@ -12,7 +12,7 @@ export async function GET() {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Force Create / Update Super Admin in MongoDB
+    // ✅ Mongoose Warning Fix: returnDocument: 'after'
     const user = await User.findOneAndUpdate(
       { email },
       {
@@ -21,7 +21,7 @@ export async function GET() {
         password: hashedPassword,
         role: "superadmin",
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
 
     return NextResponse.json({
@@ -32,16 +32,9 @@ export async function GET() {
         email: user.email,
         role: user.role,
       },
-      credentialsToUse: {
-        email: "marufsalauddinofficial@gmail.com",
-        password: "AdminPassword@123",
-      },
     });
   } catch (err) {
     console.error("Seed Admin Error:", err);
-    return NextResponse.json(
-      { error: "Failed to seed admin", details: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to seed admin" }, { status: 500 });
   }
 }
