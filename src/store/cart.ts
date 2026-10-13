@@ -7,7 +7,7 @@ export type CartItem = {
   name: string;
   price: number;
   emoji?: string;
-  image?: string; // ✅ Fixed: Added image field to type definition
+  image?: string; // ✅ Vercel build type fix: Explicitly added image field
   weight?: string;
   qty: number;
 };
