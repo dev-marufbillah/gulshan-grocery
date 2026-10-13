@@ -7,6 +7,7 @@ export type CartItem = {
   name: string;
   price: number;
   emoji: string;
+  image?: string; // ✅ TypeScript build fix for product image
   weight: string;
   qty: number;
 };
