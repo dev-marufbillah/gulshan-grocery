@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { Suspense, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Store, LayoutGrid, User, ShoppingBag } from "lucide-react";
@@ -16,12 +16,11 @@ function useHydrated() {
   );
 }
 
-export default function MobileBottomNav() {
+function MobileBottomNavContent() {
   const pathname = usePathname();
   const hydrated = useHydrated();
   const totalItems = useCartStore((s) => s.totalItems());
 
-  // ✅ Fixed TypeScript Null check for pathname
   const currentPath = pathname || "";
   const isHome = currentPath === "/";
   const isShop = currentPath === "/shop";
@@ -94,5 +93,14 @@ export default function MobileBottomNav() {
         <span className="text-[10px] font-bold">Profile</span>
       </Link>
     </div>
+  );
+}
+
+// ✅ Default export wrapped in Suspense (Fixes Next.js 16 prerendering error)
+export default function MobileBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <MobileBottomNavContent />
+    </Suspense>
   );
 }
