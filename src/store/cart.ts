@@ -6,9 +6,9 @@ export type CartItem = {
   slug?: string;
   name: string;
   price: number;
-  emoji: string;
-  image?: string; // ✅ Fixed: Added image field to type definition
-  weight: string;
+  emoji?: string;
+  image?: string; // ✅ TypeScript type fix for product image
+  weight?: string;
   qty: number;
 };
 
@@ -40,7 +40,19 @@ export const useCartStore = create<CartState>()(
             };
           }
           return {
-            items: [...state.items, { ...item, qty: item.qty ?? 1 }],
+            items: [
+              ...state.items,
+              {
+                id: item.id,
+                slug: item.slug ?? "",
+                name: item.name,
+                price: item.price,
+                emoji: item.emoji ?? "🛒",
+                image: item.image ?? "",
+                weight: item.weight ?? "500 g",
+                qty: item.qty ?? 1,
+              },
+            ],
           };
         }),
 

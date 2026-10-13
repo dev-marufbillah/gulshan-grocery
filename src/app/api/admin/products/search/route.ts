@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 
-export const dynamic = "force-dynamic"; // ✅ Fix Prerendering Warning
-
 type LeanSearchProduct = {
   _id: { toString(): string };
   name?: string;
