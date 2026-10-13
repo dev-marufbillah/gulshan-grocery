@@ -194,6 +194,7 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const { data: session } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
@@ -240,17 +241,18 @@ export default function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowDropdown(false);
+      setShowMobileSearch(false);
       router.push(`/shop?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   return (
     <header className="relative z-50 w-full">
-      {/* Top Bar */}
-      <div className="bg-[#FBC617] text-[#1a1a1a]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 text-sm md:px-6">
-          <p className="hidden md:block">Call Us : +880 1700-000000</p>
-          <p className="flex-1 text-center md:flex-none">
+      {/* Top Bar (Hidden on Mobile) */}
+      <div className="hidden bg-[#FBC617] text-[#1a1a1a] md:block">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 text-sm md:px-6">
+          <p>Call Us : +880 1700-000000</p>
+          <p className="flex-1 text-center">
             Sign up and <span className="font-bold">GET 25% OFF</span> for your
             first order.{" "}
             <Link
@@ -260,15 +262,15 @@ export default function Header() {
               Sign up now
             </Link>
           </p>
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="flex items-center gap-2">
             {socials.map(({ Icon, href, label }) => (
               <a
                 key={label}
                 href={href}
                 aria-label={label}
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1E7F57] text-[#FBC617] transition hover:scale-110"
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1E7F57] text-[#FBC617] transition hover:scale-110"
               >
-                <Icon size={11} />
+                <Icon size={12} />
               </a>
             ))}
           </div>
@@ -276,21 +278,24 @@ export default function Header() {
       </div>
 
       {/* Main Green Header */}
-      <div className="bg-[#1E7F57] text-white">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="flex flex-wrap items-center gap-4 py-5 lg:flex-nowrap lg:gap-6">
+      <div className="bg-[#1E7F57] text-white transition-all">
+        <div className="mx-auto max-w-7xl px-4 py-4 md:px-6 lg:py-5">
+          {/* Row 1: Logo & Icons */}
+          <div className="flex items-center justify-between gap-4">
+            {/* Logo */}
             <Link href="/" className="flex shrink-0 items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FBC617] text-[#1E7F57]">
-                <ShoppingBasket size={24} />
+              <span className="flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-[#FBC617] text-[#1E7F57]">
+                <ShoppingBasket size={22} className="lg:w-6 lg:h-6" />
               </span>
-              <span className="text-2xl font-semibold">
+              <span className="text-xl lg:text-2xl font-semibold">
                 Gulshan Grocery<span className="text-[#FBC617]">.</span>
               </span>
             </Link>
 
             <LocationSelector />
 
-            <div className="relative order-last flex h-12 w-full min-w-0 flex-1 lg:order-0">
+            {/* Search Bar (Desktop only) */}
+            <div className="relative hidden order-last lg:order-0 lg:flex h-12 w-full min-w-0 flex-1 items-center">
               <form
                 onSubmit={handleSearchSubmit}
                 className="flex h-full w-full items-center rounded-xl bg-white/15 px-4"
@@ -320,13 +325,11 @@ export default function Header() {
                 </button>
               </form>
 
-              {/* Search Dropdown */}
+              {/* Desktop Search Dropdown */}
               {showDropdown && (
                 <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95">
                   {isSearching ? (
-                    <div className="p-4 text-center text-xs font-semibold text-[#6b6b6b]">
-                      Searching products...
-                    </div>
+                    <div className="p-4 text-center text-xs font-semibold text-[#6b6b6b]">Searching products...</div>
                   ) : searchResults.length > 0 ? (
                     <div className="divide-y divide-[#e5e5e5]">
                       {searchResults.map((p) => (
@@ -355,28 +358,36 @@ export default function Header() {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-center text-xs font-semibold text-[#6b6b6b]">
-                      No products found for &quot;{searchQuery}&quot;
-                    </div>
+                    <div className="p-4 text-center text-xs font-semibold text-[#6b6b6b]">No products found</div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Right Icons Area */}
-            <div className="ml-auto flex shrink-0 items-center gap-5 lg:ml-0">
+            {/* Icons */}
+            <div className="flex items-center gap-4 lg:gap-6">
+              {/* Mobile Search Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="text-white hover:text-[#FBC617] lg:hidden"
+              >
+                <Search size={22} />
+              </button>
+
               <WishlistBadge />
               <CartBadge />
               
+              {/* Desktop Profile Icon */}
               <Link
                 href="/account"
                 aria-label="Account"
-                className="text-white hover:text-[#FBC617] transition"
+                className="hidden text-white hover:text-[#FBC617] lg:block"
               >
                 <User size={22} />
               </Link>
 
-              {/* ✅ Admin Icon Only: Profile (User) আইকনের ঠিক পাশে সুন্দর আইকন হিসেবে */}
+              {/* Admin Icon */}
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -390,7 +401,29 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 pb-5 lg:gap-8">
+          {/* Mobile Search Bar Expansion */}
+          {showMobileSearch && (
+            <div className="mt-3 pb-2 lg:hidden animate-in fade-in slide-in-from-top-2">
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex h-12 w-full items-center rounded-xl bg-white/15 px-4"
+              >
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  placeholder="Search products..."
+                  className="h-full min-w-0 flex-1 bg-transparent px-2 text-sm text-white placeholder:text-white/70 focus:outline-none"
+                />
+                <button type="submit" aria-label="Search" className="shrink-0 pl-2">
+                  <Search size={18} />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Row 2: Browse Categories, Nav Links (Hidden on Mobile) */}
+          <div className="hidden lg:flex items-center gap-8 pt-4 pb-1 border-t border-white/10 mt-2">
             <Link
               href="/shop"
               className="flex shrink-0 items-center gap-3 rounded-lg bg-[#FBC617] px-5 py-3 text-sm font-semibold text-[#1a1a1a] transition hover:bg-yellow-400"
@@ -399,7 +432,7 @@ export default function Header() {
               Browse All Categories
             </Link>
 
-            <nav className="hidden flex-1 items-center gap-6 text-sm font-medium lg:flex">
+            <nav className="flex flex-1 items-center gap-6 text-sm font-medium">
               {navLinks.map((l) => (
                 <Link
                   key={l.label}
