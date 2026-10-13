@@ -101,7 +101,7 @@ export default function DealCard({ product }: { product: DealItem }) {
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-lg font-bold text-[#1a1a1a]">৳{product.price}</span>
             {product.oldPrice && product.oldPrice > product.price && (
-              <span className="text-xs text-[#9a9a9a] line-through">৳{product.oldPrice}</span>
+              <span className="text-xs text-[#999] line-through">৳{product.oldPrice}</span>
             )}
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#1a1a1a]">
