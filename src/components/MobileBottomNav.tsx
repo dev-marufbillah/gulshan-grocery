@@ -21,15 +21,16 @@ export default function MobileBottomNav() {
   const hydrated = useHydrated();
   const totalItems = useCartStore((s) => s.totalItems());
 
-  // Check active routes
-  const isHome = pathname === "/";
-  const isShop = pathname === "/shop";
-  const isCategory = pathname.includes("category");
-  const isProfile = pathname.includes("/account") || pathname.includes("/login");
+  // ✅ Fixed TypeScript Null check for pathname
+  const currentPath = pathname || "";
+  const isHome = currentPath === "/";
+  const isShop = currentPath === "/shop";
+  const isCategory = currentPath.includes("category");
+  const isProfile =
+    currentPath.includes("/account") || currentPath.includes("/login");
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between border-t border-[#e5e5e5] bg-white px-2 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden">
-      
       {/* 1. Home */}
       <Link
         href="/"
@@ -48,7 +49,10 @@ export default function MobileBottomNav() {
           isCategory && !isShop ? "text-[#1E7F57]" : "text-[#6b6b6b] hover:text-[#1E7F57]"
         }`}
       >
-        <LayoutGrid size={20} className={isCategory && !isShop ? "fill-[#1E7F57]/10" : ""} />
+        <LayoutGrid
+          size={20}
+          className={isCategory && !isShop ? "fill-[#1E7F57]/10" : ""}
+        />
         <span className="text-[10px] font-bold">Category</span>
       </Link>
 
@@ -56,11 +60,12 @@ export default function MobileBottomNav() {
       <div className="relative flex h-full flex-1 items-center justify-center">
         <Link
           href="/cart"
+          aria-label="Cart"
           className="absolute -top-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow-lg ring-4 ring-white transition-transform hover:scale-105 active:scale-95"
         >
           <ShoppingBag size={24} />
           {hydrated && totalItems > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FBC617] px-1 text-[11px] font-bold text-[#1a1a1a] shadow-md border-2 border-white">
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#FBC617] px-1 text-[11px] font-bold text-[#1a1a1a] shadow-md">
               {totalItems}
             </span>
           )}
@@ -88,7 +93,6 @@ export default function MobileBottomNav() {
         <User size={20} className={isProfile ? "fill-[#1E7F57]/10" : ""} />
         <span className="text-[10px] font-bold">Profile</span>
       </Link>
-
     </div>
   );
 }
