@@ -7,7 +7,7 @@ export type CartItem = {
   name: string;
   price: number;
   emoji?: string;
-  image?: string; // ✅ TypeScript type fix for product image
+  image?: string; // ✅ Fixed: Added image field to type definition
   weight?: string;
   qty: number;
 };
