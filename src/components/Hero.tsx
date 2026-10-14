@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, ShoppingBasket, ShieldCheck, Truck } from "lucide-react";
+import Image from "next/image";
 
 type SlideItem = {
   badge: string;
@@ -64,7 +65,7 @@ export default function Hero({
   const slide = slides[currentSlide];
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#F9F9F9] pb-16 pt-10 lg:py-20">
+    <section className="relative w-full overflow-hidden bg-[#F9F9F9] pb-12 pt-8 lg:py-20">
       {/* Background Pattern */}
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-40"
@@ -75,15 +76,16 @@ export default function Hero({
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
+        <div className="flex flex-col-reverse gap-10 lg:grid lg:grid-cols-2 lg:items-center lg:gap-8">
+          
           {/* LEFT: Text Content */}
-          <div className="flex flex-col items-start max-lg:items-center max-lg:text-center">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             {/* Badge */}
-            <div className="mb-6 inline-flex animate-in fade-in slide-in-from-bottom-2 items-center gap-2 rounded-full border border-[#e5e5e5] bg-white px-4 py-2 shadow-sm transition-all">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
-                <ShoppingBasket size={14} />
+            <div className="mb-4 lg:mb-6 inline-flex animate-in fade-in slide-in-from-bottom-2 items-center gap-2 rounded-full border border-[#e5e5e5] bg-white px-3 py-1.5 lg:px-4 lg:py-2 shadow-sm transition-all">
+              <span className="flex h-5 w-5 lg:h-6 lg:w-6 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
+                <ShoppingBasket size={12} className="lg:h-3.5 lg:w-3.5" />
               </span>
-              <span className="text-xs font-semibold text-[#1a1a1a]">
+              <span className="text-[11px] lg:text-xs font-semibold text-[#1a1a1a]">
                 {slide.badge}
               </span>
             </div>
@@ -91,25 +93,25 @@ export default function Hero({
             {/* Title */}
             <h1
               key={`title-${currentSlide}`}
-              className="animate-in fade-in slide-in-from-bottom-4 text-4xl font-bold leading-[1.15] tracking-tight text-[#1a1a1a] duration-500 sm:text-5xl lg:text-[64px]"
+              className="animate-in fade-in slide-in-from-bottom-4 text-[32px] font-bold leading-[1.2] tracking-tight text-[#1a1a1a] duration-500 sm:text-5xl lg:text-[64px]"
             >
               {slide.titlePart1}
-              <span className="text-[#1E7F57]">{slide.titlePart2}</span>
+              <span className="text-[#1E7F57] block sm:inline">{slide.titlePart2}</span>
             </h1>
 
             {/* Description */}
             <p
               key={`desc-${currentSlide}`}
-              className="animate-in fade-in slide-in-from-bottom-5 mt-6 max-w-lg text-base leading-relaxed text-[#6b6b6b] duration-700"
+              className="animate-in fade-in slide-in-from-bottom-5 mt-4 lg:mt-6 max-w-md text-sm lg:text-base leading-relaxed text-[#6b6b6b] duration-700"
             >
               {slide.description}
             </p>
 
             {/* Buttons */}
-            <div className="mt-10 flex flex-wrap items-center gap-5">
+            <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 lg:mt-10 lg:gap-5 w-full sm:w-auto">
               <Link
                 href="/shop"
-                className="group flex h-14 items-center justify-center gap-2 rounded-full bg-[#1E7F57] px-8 text-base font-semibold text-white shadow-lg transition-all hover:bg-[#166b48] hover:shadow-xl"
+                className="group flex h-12 lg:h-14 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-[#1E7F57] px-8 text-sm lg:text-base font-semibold text-white shadow-lg transition-all hover:bg-[#166b48] hover:shadow-xl"
               >
                 Shop Now
                 <ArrowRight
@@ -126,23 +128,23 @@ export default function Hero({
             </div>
 
             {/* Ratings & Trust */}
-            <div className="mt-12 flex items-center gap-4 border-t border-[#e5e5e5] pt-6">
-              <div className="flex -space-x-3">
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 border-t border-[#e5e5e5] pt-6 w-full lg:w-auto">
+              <div className="flex -space-x-2 lg:-space-x-3">
                 {["👩", "👨", "👩", "🧑"].map((emoji, i) => (
                   <div
                     key={i}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-[#F4F4F4] text-lg shadow-sm"
+                    className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full border-2 border-white bg-[#F4F4F4] text-sm lg:text-lg shadow-sm"
                   >
                     {emoji}
                   </div>
                 ))}
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-[#FBC617] text-sm font-bold text-[#1a1a1a] shadow-sm">
+                <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full border-2 border-white bg-[#FBC617] text-xs lg:text-sm font-bold text-[#1a1a1a] shadow-sm">
                   +
                 </div>
               </div>
-              <div className="text-left">
-                <p className="font-bold text-[#1a1a1a]">{avgRating} Ratings+</p>
-                <p className="text-xs text-[#6b6b6b]">
+              <div className="text-center sm:text-left">
+                <p className="text-sm lg:text-base font-bold text-[#1a1a1a]">{avgRating} Ratings+</p>
+                <p className="text-[11px] lg:text-xs text-[#6b6b6b]">
                   Trusted by {customerCount}+ Customers
                 </p>
               </div>
@@ -150,8 +152,8 @@ export default function Hero({
           </div>
 
           {/* RIGHT: Image Slider */}
-          <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2rem] border-8 border-white bg-white shadow-2xl lg:aspect-[5/4] lg:rounded-[3rem]">
+          <div className="relative mx-auto w-full max-w-sm lg:max-w-none">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2rem] border-[6px] lg:border-8 border-white bg-white shadow-2xl lg:aspect-5/4 lg:rounded-[3rem]">
               {slides.map((s, i) => (
                 <div
                   key={i}
@@ -159,47 +161,48 @@ export default function Hero({
                     currentSlide === i ? "z-10 opacity-100" : "z-0 opacity-0"
                   }`}
                 >
-                  {/* Real Image Render (Universal Image Compatibility) */}
+                  {/* Real Image Render */}
                   {s.image && s.image.length > 5 ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={s.image}
                       alt="Grocery Delivery"
-                      className={`h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${
+                      className={`h-full w-full object-cover transition-transform duration-6000 ease-out ${
                         currentSlide === i ? "scale-100" : "scale-110"
                       }`}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-100">
-                      <span className="text-4xl text-gray-400">No Image</span>
+                      <span className="text-2xl lg:text-4xl text-gray-400">No Image</span>
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
                 </div>
               ))}
             </div>
 
+            {/* Floating Badges */}
             <div
-              className="absolute -left-4 bottom-10 z-20 flex animate-bounce items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-xl lg:-left-8 lg:bottom-16"
+              className="absolute -left-2 bottom-8 z-20 flex animate-bounce items-center gap-2 lg:gap-3 rounded-xl lg:rounded-2xl bg-white px-3 py-2 lg:px-5 lg:py-3 shadow-xl lg:-left-8 lg:bottom-16"
               style={{ animationDuration: "3s" }}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
-                <Truck size={18} />
+              <span className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
+                <Truck size={14} className="lg:w-4.5 lg:h-4.5" />
               </span>
-              <span className="text-sm font-bold text-[#1a1a1a]">
+              <span className="text-[11px] lg:text-sm font-bold text-[#1a1a1a]">
                 Fast Delivery
               </span>
             </div>
 
             <div
-              className="absolute -right-4 top-10 z-20 flex animate-bounce items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-xl lg:-right-8 lg:top-16"
+              className="absolute -right-2 top-8 z-20 flex animate-bounce items-center gap-2 lg:gap-3 rounded-xl lg:rounded-2xl bg-white px-3 py-2 lg:px-5 lg:py-3 shadow-xl lg:-right-8 lg:top-16"
               style={{ animationDuration: "4s" }}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
-                <ShieldCheck size={18} />
+              <span className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-[#1E7F57]">
+                <ShieldCheck size={14} className="lg:w-4.5 lg:h-4.5" />
               </span>
-              <span className="text-sm font-bold text-[#1a1a1a]">
+              <span className="text-[11px] lg:text-sm font-bold text-[#1a1a1a]">
                 Secure Payment
               </span>
             </div>
@@ -207,15 +210,15 @@ export default function Hero({
         </div>
 
         {/* Dots */}
-        <div className="mt-12 flex items-center justify-center gap-2 lg:justify-end">
+        <div className="mt-8 lg:mt-12 flex items-center justify-center gap-2 lg:justify-end">
           {slides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
+              className={`h-2 lg:h-2.5 rounded-full transition-all duration-300 ${
                 currentSlide === idx
-                  ? "w-8 bg-[#1E7F57]"
-                  : "w-2.5 bg-[#e5e5e5] hover:bg-[#1E7F57]/50"
+                  ? "w-6 lg:w-8 bg-[#1E7F57]"
+                  : "w-2 lg:w-2.5 bg-[#e5e5e5] hover:bg-[#1E7F57]/50"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />

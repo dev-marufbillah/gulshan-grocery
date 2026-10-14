@@ -248,21 +248,22 @@ export default function Header() {
 
   return (
     <header className="relative z-50 w-full">
-      {/* Top Bar (Hidden on Mobile) */}
-      <div className="hidden bg-[#FBC617] text-[#1a1a1a] md:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 text-sm md:px-6">
-          <p>Call Us : +880 1700-000000</p>
-          <p className="flex-1 text-center">
-            Sign up and <span className="font-bold">GET 25% OFF</span> for your
-            first order.{" "}
+      {/* 🌟 Top Bar (Now visible and responsive on Mobile too) */}
+      <div className="bg-[#FBC617] text-[#1a1a1a]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-1 px-4 py-2 text-xs md:flex-row md:py-2.5 md:text-sm lg:px-6">
+          <p className="font-medium text-[#1a1a1a]/80 md:block hidden">
+            Call Us : +880 1700-000000
+          </p>
+          <p className="text-center font-medium">
+            Sign up and <span className="font-bold">GET 25% OFF</span> for your first order.{" "}
             <Link
               href="/register"
-              className="font-medium text-[#1E7F57] underline underline-offset-4"
+              className="font-bold text-[#1E7F57] underline underline-offset-4 hover:text-[#166b48]"
             >
               Sign up now
             </Link>
           </p>
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
             {socials.map(({ Icon, href, label }) => (
               <a
                 key={label}
@@ -283,7 +284,7 @@ export default function Header() {
           {/* Row 1: Logo & Icons */}
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <Link href="/" className="flex shrink-0 items-center gap-3">
+            <Link href="/" className="flex shrink-0 items-center gap-2 lg:gap-3">
               <span className="flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-[#FBC617] text-[#1E7F57]">
                 <ShoppingBasket size={22} className="lg:w-6 lg:h-6" />
               </span>
@@ -375,10 +376,19 @@ export default function Header() {
                 <Search size={22} />
               </button>
 
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="hidden items-center gap-1.5 rounded-full bg-[#FBC617] px-3.5 py-1.5 text-xs font-bold text-[#1a1a1a] shadow transition hover:bg-yellow-400 lg:flex"
+                >
+                  <ShieldCheck size={16} />
+                  Admin
+                </Link>
+              )}
+
               <WishlistBadge />
               <CartBadge />
               
-              {/* Desktop Profile Icon */}
               <Link
                 href="/account"
                 aria-label="Account"
@@ -386,18 +396,6 @@ export default function Header() {
               >
                 <User size={22} />
               </Link>
-
-              {/* Admin Icon */}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  aria-label="Admin Dashboard"
-                  title="Admin Dashboard"
-                  className="text-white hover:text-[#FBC617] transition"
-                >
-                  <ShieldCheck size={22} />
-                </Link>
-              )}
             </div>
           </div>
 
@@ -444,6 +442,7 @@ export default function Header() {
               ))}
             </nav>
           </div>
+
         </div>
       </div>
     </header>
