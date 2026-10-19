@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface CartItem {
   _id: string;
+  id?: string; // ✅ Added to fix PaymentClient.tsx TS error
   name: string;
   price: number;
   oldPrice?: number;
@@ -57,7 +58,7 @@ export const useCartStore = create<CartState>()(
 
         set((state) => {
           const existingIndex = state.items.findIndex(
-            (i) => String(i._id) === itemId
+            (i) => String(i._id || i.id) === itemId
           );
 
           if (existingIndex > -1) {
@@ -74,6 +75,7 @@ export const useCartStore = create<CartState>()(
 
           const newItem: CartItem = {
             _id: itemId,
+            id: itemId,
             name: input.name || '',
             price: price,
             oldPrice: input.oldPrice,
@@ -93,7 +95,7 @@ export const useCartStore = create<CartState>()(
       removeItem: (id) => {
         const targetId = String(id);
         set((state) => ({
-          items: state.items.filter((i) => String(i._id) !== targetId),
+          items: state.items.filter((i) => String(i._id || i.id) !== targetId),
         }));
       },
 
@@ -102,7 +104,7 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           items: state.items
             .map((i) => {
-              if (String(i._id) === targetId) {
+              if (String(i._id || i.id) === targetId) {
                 const newQty = (Number(i.quantity) || 0) + delta;
                 return newQty > 0
                   ? { ...i, quantity: newQty, qty: newQty }
