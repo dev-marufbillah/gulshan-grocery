@@ -65,10 +65,8 @@ async function HomeContent() {
           },
         },
       ]),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      HeroSetting.findOne().lean<any>(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      SectionSettings.findOne().lean<any>(),
+      HeroSetting.findOne().lean<Record<string, unknown>>(),
+      SectionSettings.findOne().lean<Record<string, unknown>>(),
     ]);
 
   // Formatted Products
@@ -94,11 +92,19 @@ async function HomeContent() {
     count: c.productCount ?? 0,
   }));
 
-  // 🌟 Clean Hero Slides (Fixes MongoDB _id Serialization Error)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const slides = rawHeroData?.slides?.length
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? rawHeroData.slides.map((s: any) => ({
+  // Clean Hero Slides
+  const heroDataObj = rawHeroData as {
+    slides?: Array<{
+      badge?: string;
+      titlePart1?: string;
+      titlePart2?: string;
+      description?: string;
+      image?: string;
+    }>;
+  };
+
+  const slides = heroDataObj?.slides?.length
+    ? heroDataObj.slides.map((s) => ({
         badge: s.badge ?? "",
         titlePart1: s.titlePart1 ?? "",
         titlePart2: s.titlePart2 ?? "",
@@ -107,7 +113,7 @@ async function HomeContent() {
       }))
     : null;
 
-  // 🌟 Clean Section Settings (Ensures 100% plain object for Client Components)
+  // Clean Section Settings
   const sectionData = rawSectionData
     ? JSON.parse(JSON.stringify(rawSectionData))
     : null;

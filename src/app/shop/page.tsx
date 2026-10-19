@@ -62,7 +62,7 @@ function ShopSkeleton() {
   return (
     <section className="bg-white py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-5 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="h-95 animate-pulse rounded-xl bg-[#F4F4F4]" />
           ))}
@@ -225,7 +225,7 @@ async function ShopContent({ searchParams }: { searchParams: SP }) {
                 .
               </div>
             ) : (
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 [&>div]:w-full">
+              <div className="mt-8 grid grid-cols-2 gap-2.5 sm:gap-5 xl:grid-cols-3 [&>div]:w-full">
                 {products.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}

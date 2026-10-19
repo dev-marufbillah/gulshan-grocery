@@ -136,7 +136,7 @@ function getServerSnapshot() {
 }
 
 const inputCls =
-  "w-full rounded-full border border-[#e5e5e5] px-5 py-3.5 text-sm outline-none transition focus:border-[#1E7F57]";
+  "w-full rounded-full border border-[#e5e5e5] px-4 sm:px-5 py-3 sm:py-3.5 text-sm outline-none transition focus:border-[#1E7F57] bg-transparent";
 
 export default function AccountClient() {
   const router = useRouter();
@@ -371,10 +371,10 @@ export default function AccountClient() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-14 md:px-6">
-      <div className="grid gap-8 lg:grid-cols-[260px_1fr] lg:gap-12">
-        {/* Left menu */}
-        <aside className="flex flex-col gap-3">
+    <section className="mx-auto max-w-7xl px-4 py-8 md:py-14 md:px-6">
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr] lg:gap-12">
+        {/* Left menu - Swipeable horizontal scroll on mobile */}
+        <aside className="flex flex-row overflow-x-auto lg:flex-col gap-2.5 sm:gap-3 pb-3 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {menu.map((item) => {
             const active = tab === item.id;
             return (
@@ -382,7 +382,7 @@ export default function AccountClient() {
                 key={item.id}
                 type="button"
                 onClick={() => handleMenu(item.id)}
-                className={`rounded-2xl px-6 py-4 text-left text-sm font-semibold transition ${
+                className={`shrink-0 whitespace-nowrap rounded-full lg:rounded-2xl px-5 sm:px-6 py-3 lg:py-4 text-center lg:text-left text-xs sm:text-sm font-semibold transition ${
                   active
                     ? "bg-[#FBC617] text-[#1a1a1a] shadow-sm"
                     : "border border-[#e5e5e5] bg-white text-[#1a1a1a] hover:border-[#1E7F57]"
@@ -403,24 +403,24 @@ export default function AccountClient() {
           {/* ===== PERSONAL ===== */}
           {tab === "personal" && (
             <form onSubmit={handleUpdatePersonal} className="max-w-2xl">
-              <div className="mb-10 flex justify-center lg:justify-start">
+              <div className="mb-8 sm:mb-10 flex justify-center lg:justify-start">
                 <div className="relative">
-                  <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#d4ebe0] to-[#a8d4b8] text-5xl ring-4 ring-white shadow-md">
+                  <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#d4ebe0] to-[#a8d4b8] text-4xl sm:text-5xl ring-4 ring-white shadow-md">
                     👩
                   </div>
                   <button
                     type="button"
                     aria-label="Edit photo"
-                    className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow ring-2 ring-white hover:bg-[#166b48]"
+                    className="absolute bottom-1 right-1 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow ring-2 ring-white hover:bg-[#166b48]"
                   >
                     <Pencil size={14} />
                   </button>
                 </div>
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-4 sm:gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -431,7 +431,7 @@ export default function AccountClient() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -443,8 +443,8 @@ export default function AccountClient() {
                 </div>
               </div>
 
-              <div className="mt-5">
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+              <div className="mt-4 sm:mt-5">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -456,8 +456,8 @@ export default function AccountClient() {
                 />
               </div>
 
-              <div className="mt-5">
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+              <div className="mt-4 sm:mt-5">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Phone <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -469,8 +469,8 @@ export default function AccountClient() {
                 />
               </div>
 
-              <div className="mt-5">
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+              <div className="mt-4 sm:mt-5">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Gender <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -493,14 +493,14 @@ export default function AccountClient() {
               </div>
 
               {saved && (
-                <p className="mt-4 text-sm font-semibold text-[#1E7F57]">
+                <p className="mt-4 text-xs sm:text-sm font-semibold text-[#1E7F57]">
                   Profile updated successfully!
                 </p>
               )}
 
               <button
                 type="submit"
-                className="mt-8 rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white hover:bg-[#166b48]"
+                className="mt-6 sm:mt-8 w-full sm:w-auto rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white hover:bg-[#166b48] transition-colors"
               >
                 Update Changes
               </button>
@@ -510,18 +510,18 @@ export default function AccountClient() {
           {/* ===== MY ORDERS ===== */}
           {tab === "orders" && (
             <div>
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <h2 className="flex items-center gap-2 text-xl font-bold text-[#1a1a1a]">
-                  <Package className="text-[#1E7F57]" size={24} />
+              <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-[#1a1a1a]">
+                  <Package className="text-[#1E7F57]" size={22} />
                   Orders ({orders.length})
                 </h2>
-                <div className="flex items-center gap-2 text-sm text-[#6b6b6b]">
-                  <span>Sort by :</span>
-                  <div className="relative">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6b6b6b]">
+                  <span className="shrink-0">Sort by :</span>
+                  <div className="relative w-full sm:w-auto">
                     <select
                       value={sort}
                       onChange={(e) => setSort(e.target.value)}
-                      className="appearance-none rounded-full border border-[#e5e5e5] bg-white py-2 pl-4 pr-10 text-sm font-medium text-[#1a1a1a] outline-none focus:border-[#1E7F57]"
+                      className="appearance-none w-full sm:w-auto rounded-full border border-[#e5e5e5] bg-white py-2 pl-4 pr-10 text-xs sm:text-sm font-medium text-[#1a1a1a] outline-none focus:border-[#1E7F57]"
                     >
                       <option value="all">All</option>
                       <option value="accepted">Accepted</option>
@@ -536,76 +536,76 @@ export default function AccountClient() {
               </div>
 
               {orders.length === 0 ? (
-                <div className="rounded-2xl border border-[#e5e5e5] p-12 text-center">
-                  <Package size={40} className="mx-auto text-[#c4c4c4]" />
-                  <p className="mt-4 font-semibold text-[#1a1a1a]">
+                <div className="rounded-2xl border border-[#e5e5e5] p-10 sm:p-12 text-center">
+                  <Package size={36} className="mx-auto text-[#c4c4c4]" />
+                  <p className="mt-4 text-sm sm:text-base font-semibold text-[#1a1a1a]">
                     No orders found
                   </p>
                   <Link
                     href="/shop"
-                    className="mt-4 inline-flex rounded-full bg-[#1E7F57] px-6 py-2.5 text-sm font-semibold text-white"
+                    className="mt-4 inline-flex rounded-full bg-[#1E7F57] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white"
                   >
                     Start Shopping
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {orders.map((order) => (
                     <div
                       key={order.id}
-                      className="overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white shadow-sm"
+                      className="overflow-hidden rounded-xl sm:rounded-2xl border border-[#e5e5e5] bg-white shadow-sm"
                     >
-                      <div className="grid grid-cols-2 gap-3 bg-[#FBC617] px-5 py-4 sm:grid-cols-4 sm:gap-0">
+                      <div className="grid grid-cols-2 gap-3 bg-[#FBC617] px-4 py-3 sm:px-5 sm:py-4 sm:grid-cols-4 sm:gap-0">
                         <div className="sm:border-r sm:border-black/10 sm:pr-4">
-                          <p className="text-[11px] font-medium text-[#1a1a1a]/70">
+                          <p className="text-[10px] sm:text-[11px] font-medium text-[#1a1a1a]/70">
                             Order ID
                           </p>
-                          <p className="mt-0.5 text-sm font-bold text-[#1a1a1a]">
+                          <p className="mt-0.5 text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
                             {order.id}
                           </p>
                         </div>
                         <div className="sm:border-r sm:border-black/10 sm:px-4">
-                          <p className="text-[11px] font-medium text-[#1a1a1a]/70">
+                          <p className="text-[10px] sm:text-[11px] font-medium text-[#1a1a1a]/70">
                             Total Payment
                           </p>
-                          <p className="mt-0.5 text-sm font-bold text-[#1a1a1a]">
+                          <p className="mt-0.5 text-xs sm:text-sm font-bold text-[#1a1a1a]">
                             ৳{order.total.toFixed(2)}
                           </p>
                         </div>
                         <div className="sm:border-r sm:border-black/10 sm:px-4">
-                          <p className="text-[11px] font-medium text-[#1a1a1a]/70">
+                          <p className="text-[10px] sm:text-[11px] font-medium text-[#1a1a1a]/70">
                             Payment Method
                           </p>
-                          <p className="mt-0.5 text-sm font-bold text-[#1a1a1a]">
+                          <p className="mt-0.5 text-xs sm:text-sm font-bold text-[#1a1a1a] truncate">
                             {order.paymentMethod}
                           </p>
                         </div>
                         <div className="sm:pl-4">
-                          <p className="text-[11px] font-medium text-[#1a1a1a]/70">
+                          <p className="text-[10px] sm:text-[11px] font-medium text-[#1a1a1a]/70">
                             {order.dateType === "delivered"
                               ? "Delivered Date"
                               : "Estimated Delivery Date"}
                           </p>
-                          <p className="mt-0.5 text-sm font-bold text-[#1a1a1a]">
+                          <p className="mt-0.5 text-xs sm:text-sm font-bold text-[#1a1a1a]">
                             {order.dateLabel}
                           </p>
                         </div>
                       </div>
 
-                      <div className="divide-y divide-[#e5e5e5] px-5">
+                      <div className="divide-y divide-[#e5e5e5] px-4 sm:px-5">
                         {order.items.map((item, idx) => (
                           <div
                             key={`${order.id}-${idx}`}
-                            className="flex items-center gap-4 py-4"
+                            className="flex items-center gap-3 sm:gap-4 py-3 sm:py-4"
                           >
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#e5e5e5] bg-[#F9F9F9] text-3xl">
+                            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl border border-[#e5e5e5] bg-[#F9F9F9] text-2xl sm:text-3xl">
                               {item.emoji}
                             </div>
                             <div>
-                              <p className="font-semibold text-[#1a1a1a]">
+                              <p className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
                                 {item.name}
                               </p>
-                              <p className="text-sm text-[#6b6b6b]">
+                              <p className="text-xs sm:text-sm text-[#6b6b6b]">
                                 {item.weight} | {item.qty} Qty.
                               </p>
                             </div>
@@ -613,10 +613,10 @@ export default function AccountClient() {
                         ))}
                       </div>
 
-                      <div className="border-t border-[#e5e5e5] px-5 py-4">
+                      <div className="border-t border-[#e5e5e5] px-4 sm:px-5 py-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                            className={`rounded-full border px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold ${
                               order.status === "delivered"
                                 ? "border-[#1E7F57] text-[#1E7F57]"
                                 : "border-[#f5a623] text-[#f5a623]"
@@ -626,23 +626,23 @@ export default function AccountClient() {
                               ? "Delivered"
                               : "Accepted"}
                           </span>
-                          <span className="text-sm text-[#6b6b6b]">
+                          <span className="text-xs sm:text-sm text-[#6b6b6b]">
                             {order.statusText}
                           </span>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="mt-4 flex flex-wrap items-center gap-2.5 sm:gap-3">
                           {order.status === "delivered" ? (
                             <button
                               type="button"
-                              className="rounded-full bg-[#1E7F57] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                              className="w-full sm:w-auto rounded-full bg-[#1E7F57] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white transition hover:bg-[#166b48]"
                             >
                               Add Review
                             </button>
                           ) : (
                             <Link
                               href="/track-order"
-                              className="rounded-full bg-[#1E7F57] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                              className="w-full sm:w-auto text-center rounded-full bg-[#1E7F57] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white transition hover:bg-[#166b48]"
                             >
                               Track Order
                             </Link>
@@ -651,7 +651,7 @@ export default function AccountClient() {
                           <button
                             type="button"
                             onClick={() => window.print()}
-                            className="rounded-full border border-[#1E7F57] px-6 py-2.5 text-sm font-semibold text-[#1E7F57] transition hover:bg-[#E8F3EE]"
+                            className="w-full sm:w-auto rounded-full border border-[#1E7F57] px-6 py-2.5 text-xs sm:text-sm font-semibold text-[#1E7F57] transition hover:bg-[#E8F3EE]"
                           >
                             Invoice
                           </button>
@@ -659,7 +659,7 @@ export default function AccountClient() {
                           {order.status !== "delivered" && (
                             <button
                               type="button"
-                              className="ml-auto text-sm font-semibold text-red-500 transition hover:underline"
+                              className="w-full sm:w-auto sm:ml-auto text-xs sm:text-sm font-semibold text-red-500 transition hover:underline py-2 sm:py-0 text-center"
                             >
                               Cancel Order
                             </button>
@@ -676,33 +676,33 @@ export default function AccountClient() {
           {/* ===== ADDRESS ===== */}
           {tab === "address" && (
             <div className="max-w-3xl">
-              <div className="mb-6 flex items-center gap-3">
-                <MapPin className="text-[#1E7F57]" size={24} />
-                <h2 className="text-xl font-bold text-[#1a1a1a]">
+              <div className="mb-5 sm:mb-6 flex items-center gap-2.5 sm:gap-3">
+                <MapPin className="text-[#1E7F57]" size={22} />
+                <h2 className="text-lg sm:text-xl font-bold text-[#1a1a1a]">
                   Manage Address
                 </h2>
               </div>
 
               {addresses.length > 0 && (
-                <div className="mb-8 overflow-hidden rounded-2xl border border-[#e5e5e5]">
+                <div className="mb-6 sm:mb-8 overflow-hidden rounded-xl sm:rounded-2xl border border-[#e5e5e5]">
                   {addresses.map((addr, i) => (
                     <div
                       key={addr.id}
-                      className={`flex flex-wrap items-start justify-between gap-4 px-5 py-5 ${
+                      className={`flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 px-4 sm:px-5 py-4 sm:py-5 ${
                         i !== addresses.length - 1
                           ? "border-b border-[#e5e5e5]"
                           : ""
                       }`}
                     >
                       <div>
-                        <p className="font-semibold text-[#1a1a1a]">
+                        <p className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
                           {addr.name}
                         </p>
-                        <p className="mt-1 text-sm text-[#6b6b6b]">
+                        <p className="mt-1 text-xs sm:text-sm text-[#6b6b6b]">
                           {addr.line}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4 text-sm font-semibold">
+                      <div className="flex items-center gap-4 text-xs sm:text-sm font-semibold shrink-0">
                         <button
                           type="button"
                           onClick={() => fillFormForEdit(addr)}
@@ -723,14 +723,14 @@ export default function AccountClient() {
                 </div>
               )}
 
-              <h2 className="mb-6 text-xl font-bold text-[#1a1a1a]">
+              <h2 className="mb-4 sm:mb-6 text-lg sm:text-xl font-bold text-[#1a1a1a]">
                 {editingId ? "Edit Address" : "Add New Address"}
               </h2>
 
-              <form onSubmit={handleAddAddress} className="space-y-5">
-                <div className="grid gap-5 sm:grid-cols-2">
+              <form onSubmit={handleAddAddress} className="space-y-4 sm:space-y-5">
+                <div className="grid gap-4 sm:gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                    <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                       First Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -742,7 +742,7 @@ export default function AccountClient() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                    <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                       Last Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -756,7 +756,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Company Name (Optional)
                   </label>
                   <input
@@ -768,7 +768,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Country <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -792,7 +792,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Street Address <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -805,7 +805,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     City <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -830,7 +830,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     State <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -859,7 +859,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Zip Code <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -872,7 +872,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Phone <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -886,7 +886,7 @@ export default function AccountClient() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                  <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -900,15 +900,15 @@ export default function AccountClient() {
                 </div>
 
                 {addrMsg && (
-                  <p className="text-sm font-semibold text-[#1E7F57]">
+                  <p className="text-xs sm:text-sm font-semibold text-[#1E7F57]">
                     {addrMsg}
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
                   <button
                     type="submit"
-                    className="rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                    className="w-full sm:w-auto rounded-full bg-[#1E7F57] px-8 sm:px-10 py-3.5 text-xs sm:text-sm font-semibold text-white transition hover:bg-[#166b48]"
                   >
                     {editingId ? "Update Address" : "Add Address"}
                   </button>
@@ -919,7 +919,7 @@ export default function AccountClient() {
                         setEditingId(null);
                         resetAddressForm();
                       }}
-                      className="rounded-full border border-[#e5e5e5] px-8 py-3.5 text-sm font-semibold text-[#1a1a1a] hover:border-[#1E7F57]"
+                      className="w-full sm:w-auto rounded-full border border-[#e5e5e5] px-8 py-3.5 text-xs sm:text-sm font-semibold text-[#1a1a1a] hover:border-[#1E7F57]"
                     >
                       Cancel
                     </button>
@@ -932,24 +932,24 @@ export default function AccountClient() {
           {/* ===== PAYMENT ===== */}
           {tab === "payment" && (
             <div className="max-w-2xl space-y-4">
-              <div className="mb-6 flex items-center gap-3 border-b border-[#e5e5e5] pb-4">
-                <CreditCard className="text-[#1E7F57]" size={24} />
-                <h2 className="text-xl font-bold text-[#1a1a1a]">
+              <div className="mb-5 sm:mb-6 flex items-center gap-2.5 sm:gap-3 border-b border-[#e5e5e5] pb-3 sm:pb-4">
+                <CreditCard className="text-[#1E7F57]" size={22} />
+                <h2 className="text-lg sm:text-xl font-bold text-[#1a1a1a]">
                   Payment Method
                 </h2>
               </div>
 
               {/* bKash */}
-              <div className="overflow-hidden rounded-2xl border border-[#e5e5e5]">
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E2136E] text-xs font-bold text-white">
+              <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-[#e5e5e5]">
+                <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#E2136E] text-[10px] sm:text-xs font-bold text-white shrink-0">
                       bK
                     </span>
                     <div>
-                      <p className="font-semibold text-[#1a1a1a]">bKash</p>
+                      <p className="text-sm sm:text-base font-semibold text-[#1a1a1a]">bKash</p>
                       {bkashLinked && bkashNumber && (
-                        <p className="text-sm text-[#6b6b6b]">{bkashNumber}</p>
+                        <p className="text-xs sm:text-sm text-[#6b6b6b]">{bkashNumber}</p>
                       )}
                     </div>
                   </div>
@@ -963,7 +963,7 @@ export default function AccountClient() {
                         setPayMsg("bKash unlinked");
                         setTimeout(() => setPayMsg(""), 2000);
                       }}
-                      className="text-sm font-semibold text-red-500 hover:underline"
+                      className="text-xs sm:text-sm font-semibold text-red-500 hover:underline"
                     >
                       Unlink
                     </button>
@@ -974,7 +974,7 @@ export default function AccountClient() {
                         setShowBkashForm((v) => !v);
                         setShowNagadForm(false);
                       }}
-                      className="text-sm font-semibold text-[#1E7F57] hover:underline"
+                      className="text-xs sm:text-sm font-semibold text-[#1E7F57] hover:underline"
                     >
                       Link Account
                     </button>
@@ -982,8 +982,8 @@ export default function AccountClient() {
                 </div>
 
                 {showBkashForm && !bkashLinked && (
-                  <div className="space-y-3 border-t border-[#e5e5e5] px-5 py-4">
-                    <label className="block text-sm font-semibold text-[#1a1a1a]">
+                  <div className="space-y-3 border-t border-[#e5e5e5] px-4 sm:px-5 py-3.5 sm:py-4">
+                    <label className="block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                       bKash Number *
                     </label>
                     <input
@@ -1005,7 +1005,7 @@ export default function AccountClient() {
                         setPayMsg("bKash linked successfully!");
                         setTimeout(() => setPayMsg(""), 2000);
                       }}
-                      className="rounded-full bg-[#E2136E] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                      className="w-full sm:w-auto rounded-full bg-[#E2136E] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white hover:opacity-90"
                     >
                       Confirm bKash
                     </button>
@@ -1014,16 +1014,16 @@ export default function AccountClient() {
               </div>
 
               {/* Nagad */}
-              <div className="overflow-hidden rounded-2xl border border-[#e5e5e5]">
-                <div className="flex items-center justify-between px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F6921E] text-xs font-bold text-white">
+              <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-[#e5e5e5]">
+                <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#F6921E] text-[10px] sm:text-xs font-bold text-white shrink-0">
                       N
                     </span>
                     <div>
-                      <p className="font-semibold text-[#1a1a1a]">Nagad</p>
+                      <p className="text-sm sm:text-base font-semibold text-[#1a1a1a]">Nagad</p>
                       {nagadLinked && nagadNumber && (
-                        <p className="text-sm text-[#6b6b6b]">{nagadNumber}</p>
+                        <p className="text-xs sm:text-sm text-[#6b6b6b]">{nagadNumber}</p>
                       )}
                     </div>
                   </div>
@@ -1037,7 +1037,7 @@ export default function AccountClient() {
                         setPayMsg("Nagad unlinked");
                         setTimeout(() => setPayMsg(""), 2000);
                       }}
-                      className="text-sm font-semibold text-red-500 hover:underline"
+                      className="text-xs sm:text-sm font-semibold text-red-500 hover:underline"
                     >
                       Unlink
                     </button>
@@ -1048,7 +1048,7 @@ export default function AccountClient() {
                         setShowNagadForm((v) => !v);
                         setShowBkashForm(false);
                       }}
-                      className="text-sm font-semibold text-[#1E7F57] hover:underline"
+                      className="text-xs sm:text-sm font-semibold text-[#1E7F57] hover:underline"
                     >
                       Link Account
                     </button>
@@ -1056,8 +1056,8 @@ export default function AccountClient() {
                 </div>
 
                 {showNagadForm && !nagadLinked && (
-                  <div className="space-y-3 border-t border-[#e5e5e5] px-5 py-4">
-                    <label className="block text-sm font-semibold text-[#1a1a1a]">
+                  <div className="space-y-3 border-t border-[#e5e5e5] px-4 sm:px-5 py-3.5 sm:py-4">
+                    <label className="block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                       Nagad Number *
                     </label>
                     <input
@@ -1079,7 +1079,7 @@ export default function AccountClient() {
                         setPayMsg("Nagad linked successfully!");
                         setTimeout(() => setPayMsg(""), 2000);
                       }}
-                      className="rounded-full bg-[#F6921E] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                      className="w-full sm:w-auto rounded-full bg-[#F6921E] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white hover:opacity-90"
                     >
                       Confirm Nagad
                     </button>
@@ -1091,12 +1091,12 @@ export default function AccountClient() {
               {cards.map((card) => (
                 <div
                   key={card.id}
-                  className="flex items-center justify-between rounded-2xl border border-[#e5e5e5] px-5 py-4"
+                  className="flex items-center justify-between rounded-xl sm:rounded-2xl border border-[#e5e5e5] px-4 sm:px-5 py-3.5 sm:py-4"
                 >
-                  <div className="flex items-center gap-3">
-                    <FaCcVisa className="text-[#1434CB]" size={32} />
-                    <span className="font-semibold tracking-wide text-[#1a1a1a]">
-                      **** **** **** {card.last4}
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <FaCcVisa className="text-[#1434CB] shrink-0" size={28} />
+                    <span className="text-sm sm:text-base font-semibold tracking-wide text-[#1a1a1a]">
+                      **** **** {card.last4}
                     </span>
                   </div>
                   <button
@@ -1104,7 +1104,7 @@ export default function AccountClient() {
                     onClick={() =>
                       setCards((prev) => prev.filter((c) => c.id !== card.id))
                     }
-                    className="text-sm font-semibold text-red-500 hover:underline"
+                    className="text-xs sm:text-sm font-semibold text-red-500 hover:underline"
                   >
                     Delete
                   </button>
@@ -1112,28 +1112,28 @@ export default function AccountClient() {
               ))}
 
               {/* Cash on Delivery */}
-              <div className="flex items-center justify-between rounded-2xl border border-[#e5e5e5] px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-lg">
+              <div className="flex items-center justify-between rounded-xl sm:rounded-2xl border border-[#e5e5e5] px-4 sm:px-5 py-3.5 sm:py-4">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#E8F3EE] text-base sm:text-lg shrink-0">
                     💵
                   </span>
                   <div>
-                    <p className="font-semibold text-[#1a1a1a]">
+                    <p className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
                       Cash on Delivery
                     </p>
-                    <p className="text-sm text-[#6b6b6b]">
+                    <p className="text-xs sm:text-sm text-[#6b6b6b]">
                       Available at checkout
                     </p>
                   </div>
                 </div>
-                <span className="rounded-full bg-[#E8F3EE] px-3 py-1 text-xs font-bold text-[#1E7F57]">
+                <span className="shrink-0 rounded-full bg-[#E8F3EE] px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-[#1E7F57]">
                   Always on
                 </span>
               </div>
 
               {/* Add New Card form */}
-              <div className="overflow-hidden rounded-2xl border border-[#e5e5e5]">
-                <label className="flex cursor-pointer items-center gap-3 px-5 py-4 hover:bg-[#F9F9F9]">
+              <div className="overflow-hidden rounded-xl sm:rounded-2xl border border-[#e5e5e5]">
+                <label className="flex cursor-pointer items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 hover:bg-[#F9F9F9]">
                   <input
                     type="radio"
                     name="addcard"
@@ -1141,19 +1141,19 @@ export default function AccountClient() {
                     onChange={() => setShowCardForm(true)}
                     className="h-4 w-4 cursor-pointer accent-[#1E7F57]"
                   />
-                  <CreditCard size={20} className="text-[#1E7F57]" />
-                  <span className="font-semibold text-[#1a1a1a]">
-                    Add New Credit/Debit Card
+                  <CreditCard size={18} className="text-[#1E7F57]" />
+                  <span className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
+                    Add New Card
                   </span>
                 </label>
 
                 {showCardForm && (
                   <form
                     onSubmit={handleAddCard}
-                    className="space-y-5 border-t border-[#e5e5e5] px-5 pb-6 pt-5"
+                    className="space-y-4 sm:space-y-5 border-t border-[#e5e5e5] px-4 sm:px-5 pb-5 sm:pb-6 pt-4 sm:pt-5"
                   >
                     <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                      <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                         Card Holder Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1165,7 +1165,7 @@ export default function AccountClient() {
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                      <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                         Card Number <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1176,9 +1176,9 @@ export default function AccountClient() {
                         className={inputCls}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-5">
+                    <div className="grid grid-cols-2 gap-4 sm:gap-5">
                       <div>
-                        <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                        <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                           Expiry Date <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1190,7 +1190,7 @@ export default function AccountClient() {
                         />
                       </div>
                       <div>
-                        <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                        <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                           CVV <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -1204,25 +1204,25 @@ export default function AccountClient() {
                         />
                       </div>
                     </div>
-                    <label className="flex cursor-pointer items-center gap-3 pt-2">
+                    <label className="flex cursor-pointer items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2">
                       <input
                         type="checkbox"
                         checked={saveCard}
                         onChange={(e) => setSaveCard(e.target.checked)}
                         className="h-4 w-4 cursor-pointer rounded accent-[#1E7F57]"
                       />
-                      <span className="text-sm font-medium text-[#1a1a1a]">
+                      <span className="text-xs sm:text-sm font-medium text-[#1a1a1a]">
                         Save card for future payments
                       </span>
                     </label>
                     {payMsg && (
-                      <p className="text-sm font-semibold text-[#1E7F57]">
+                      <p className="text-xs sm:text-sm font-semibold text-[#1E7F57]">
                         {payMsg}
                       </p>
                     )}
                     <button
                       type="submit"
-                      className="rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                      className="w-full sm:w-auto rounded-full bg-[#1E7F57] px-8 sm:px-10 py-3.5 text-xs sm:text-sm font-semibold text-white transition hover:bg-[#166b48]"
                     >
                       Add Card
                     </button>
@@ -1235,15 +1235,15 @@ export default function AccountClient() {
           {/* ===== PASSWORD MANAGER ===== */}
           {tab === "password" && (
             <form onSubmit={handleUpdatePassword} className="max-w-xl">
-              <div className="mb-6 flex items-center gap-3">
-                <Lock className="text-[#1E7F57]" size={24} />
-                <h2 className="text-xl font-bold text-[#1a1a1a]">
+              <div className="mb-5 sm:mb-6 flex items-center gap-2.5 sm:gap-3">
+                <Lock className="text-[#1E7F57]" size={22} />
+                <h2 className="text-lg sm:text-xl font-bold text-[#1a1a1a]">
                   Password Manager
                 </h2>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -1269,15 +1269,15 @@ export default function AccountClient() {
                 <div className="mt-2 flex justify-end">
                   <Link
                     href="/forgot-password"
-                    className="text-sm font-semibold text-[#1E7F57] underline underline-offset-4 hover:text-[#166b48]"
+                    className="text-xs sm:text-sm font-semibold text-[#1E7F57] underline underline-offset-4 hover:text-[#166b48]"
                   >
                     Forgot Password?
                   </Link>
                 </div>
               </div>
 
-              <div className="mt-6">
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+              <div className="mt-5 sm:mt-6">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   New Password
                 </label>
                 <div className="relative">
@@ -1300,8 +1300,8 @@ export default function AccountClient() {
                 </div>
               </div>
 
-              <div className="mt-6">
-                <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+              <div className="mt-5 sm:mt-6">
+                <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
                   Confirm New Password
                 </label>
                 <div className="relative">
@@ -1327,14 +1327,14 @@ export default function AccountClient() {
               </div>
 
               {saved && (
-                <p className="mt-4 text-sm font-semibold text-[#1E7F57]">
+                <p className="mt-4 text-xs sm:text-sm font-semibold text-[#1E7F57]">
                   Password updated successfully!
                 </p>
               )}
 
               <button
                 type="submit"
-                className="mt-8 rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                className="mt-6 sm:mt-8 w-full sm:w-auto rounded-full bg-[#1E7F57] px-10 py-3.5 text-xs sm:text-sm font-semibold text-white transition hover:bg-[#166b48]"
               >
                 Update Password
               </button>
@@ -1343,15 +1343,15 @@ export default function AccountClient() {
 
           {/* ===== LOGOUT ===== */}
           {tab === "logout" && (
-            <div>
-              <h2 className="text-2xl font-bold text-[#1a1a1a]">Logout</h2>
-              <p className="mt-2 text-sm text-[#6b6b6b]">
+            <div className="text-center sm:text-left">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1a1a1a]">Logout</h2>
+              <p className="mt-2 text-xs sm:text-sm text-[#6b6b6b]">
                 Are you sure you want to log out?
               </p>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-6 rounded-full bg-[#1E7F57] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#166b48]"
+                className="mt-5 sm:mt-6 w-full sm:w-auto rounded-full bg-[#1E7F57] px-8 py-3.5 sm:py-3 text-sm font-semibold text-white transition hover:bg-[#166b48]"
               >
                 Yes, Logout
               </button>

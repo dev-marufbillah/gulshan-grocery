@@ -1,12 +1,11 @@
 "use client";
 
-import { Suspense, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Store, LayoutGrid, User, ShoppingBag } from "lucide-react";
+import { Home, Tag, ShoppingBag, User, Store } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 
-// Hydration safe connection for Cart Badge
 const emptySubscribe = () => () => {};
 function useHydrated() {
   return useSyncExternalStore(
@@ -16,91 +15,91 @@ function useHydrated() {
   );
 }
 
-function MobileBottomNavContent() {
+export default function MobileBottomNav() {
   const pathname = usePathname();
   const hydrated = useHydrated();
-  const totalItems = useCartStore((s) => s.totalItems());
 
-  const currentPath = pathname || "";
-  const isHome = currentPath === "/";
-  const isShop = currentPath === "/shop";
-  const isCategory = currentPath.includes("category");
-  const isProfile =
-    currentPath.includes("/account") || currentPath.includes("/login");
+  const items = useCartStore((s) => s.items);
+  const cartCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between border-t border-[#e5e5e5] bg-white px-2 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] md:hidden">
-      {/* 1. Home */}
-      <Link
-        href="/"
-        className={`flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-          isHome ? "text-[#1E7F57]" : "text-[#6b6b6b] hover:text-[#1E7F57]"
-        }`}
-      >
-        <Home size={20} className={isHome ? "fill-[#1E7F57]/10" : ""} />
-        <span className="text-[10px] font-bold">Home</span>
-      </Link>
-
-      {/* 2. Category */}
-      <Link
-        href="/shop?category=fresh-fruits"
-        className={`flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-          isCategory && !isShop ? "text-[#1E7F57]" : "text-[#6b6b6b] hover:text-[#1E7F57]"
-        }`}
-      >
-        <LayoutGrid
-          size={20}
-          className={isCategory && !isShop ? "fill-[#1E7F57]/10" : ""}
-        />
-        <span className="text-[10px] font-bold">Category</span>
-      </Link>
-
-      {/* 3. Floating Center Cart Button */}
-      <div className="relative flex h-full flex-1 items-center justify-center">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/95 backdrop-blur-md lg:hidden shadow-lg">
+      <div className="relative flex h-16 items-center justify-around px-2">
+        {/* 1. HOME */}
         <Link
-          href="/cart"
-          aria-label="Cart"
-          className="absolute -top-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow-lg ring-4 ring-white transition-transform hover:scale-105 active:scale-95"
+          href="/"
+          className={`flex flex-col items-center justify-center gap-1 w-14 transition ${
+            pathname === "/"
+              ? "text-[#1E7F57] font-bold"
+              : "text-gray-500 hover:text-gray-800"
+          }`}
         >
-          <ShoppingBag size={24} />
-          {hydrated && totalItems > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#FBC617] px-1 text-[11px] font-bold text-[#1a1a1a] shadow-md">
-              {totalItems}
+          <Home size={20} />
+          <span className="text-[10px] tracking-tight">Home</span>
+        </Link>
+
+        {/* 2. OFFERS */}
+        <Link
+          href="/offers"
+          className={`relative flex flex-col items-center justify-center gap-1 w-14 transition ${
+            pathname === "/offers"
+              ? "text-[#1E7F57] font-bold"
+              : "text-gray-500 hover:text-gray-800"
+          }`}
+        >
+          <div className="relative">
+            <Tag size={20} className="rotate-90" />
+            <span className="absolute -top-1.5 -right-2.5 rounded-full bg-red-500 px-1 py-0.2 text-[8px] font-extrabold text-white animate-pulse">
+              HOT
             </span>
-          )}
+          </div>
+          <span className="text-[10px] tracking-tight">Offers</span>
+        </Link>
+
+        {/* 3. CENTER FLOATING CART BUTTON */}
+        <div className="relative -top-5 flex items-center justify-center">
+          <Link
+            href="/cart"
+            aria-label="Shopping Cart"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow-lg ring-4 ring-white transition-transform active:scale-90 hover:bg-[#166b48]"
+          >
+            <ShoppingBag size={24} />
+
+            {/* Real Cart Count Badge */}
+            {hydrated && cartCount > 0 && (
+              <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-[#FBC617] text-[11px] font-bold text-[#1a1a1a] ring-2 ring-white">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
+        {/* 4. SHOP */}
+        <Link
+          href="/shop"
+          className={`flex flex-col items-center justify-center gap-1 w-14 transition ${
+            pathname?.startsWith("/shop")
+              ? "text-[#1E7F57] font-bold"
+              : "text-gray-500 hover:text-gray-800"
+          }`}
+        >
+          <Store size={20} />
+          <span className="text-[10px] tracking-tight">Shop</span>
+        </Link>
+
+        {/* 5. PROFILE */}
+        <Link
+          href="/profile"
+          className={`flex flex-col items-center justify-center gap-1 w-14 transition ${
+            pathname?.includes("profile") || pathname?.includes("account")
+              ? "text-[#1E7F57] font-bold"
+              : "text-gray-500 hover:text-gray-800"
+          }`}
+        >
+          <User size={20} />
+          <span className="text-[10px] tracking-tight">Profile</span>
         </Link>
       </div>
-
-      {/* 4. Shop */}
-      <Link
-        href="/shop"
-        className={`flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-          isShop ? "text-[#1E7F57]" : "text-[#6b6b6b] hover:text-[#1E7F57]"
-        }`}
-      >
-        <Store size={20} className={isShop ? "fill-[#1E7F57]/10" : ""} />
-        <span className="text-[10px] font-bold">Shop</span>
-      </Link>
-
-      {/* 5. Profile */}
-      <Link
-        href="/account"
-        className={`flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-          isProfile ? "text-[#1E7F57]" : "text-[#6b6b6b] hover:text-[#1E7F57]"
-        }`}
-      >
-        <User size={20} className={isProfile ? "fill-[#1E7F57]/10" : ""} />
-        <span className="text-[10px] font-bold">Profile</span>
-      </Link>
-    </div>
-  );
-}
-
-// ✅ Default export wrapped in Suspense (Fixes Next.js 16 prerendering error)
-export default function MobileBottomNav() {
-  return (
-    <Suspense fallback={null}>
-      <MobileBottomNavContent />
-    </Suspense>
+    </nav>
   );
 }

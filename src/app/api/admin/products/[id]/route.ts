@@ -1,199 +1,82 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
-import { auth } from "@/auth";
 
-// 1. GET SINGLE PRODUCT FOR EDIT
+// GET a single product for editing
 export async function GET(
-  req: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB(); // Database connection first
+    const { id } = await params;
+    await connectDB();
 
-    const resolvedParams = await params;
-    const id = resolvedParams?.id;
-
-    if (!id) {
-      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
-    }
-
-    let product = null;
-
-    // ১. ObjectId দিয়ে খোঁজা
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      product = await Product.findById(id).lean();
-    }
-
-    // ২. না পাওয়া গেলে Slug দিয়ে খোঁজা
+    const product = await Product.findById(id);
     if (!product) {
-      product = await Product.findOne({ slug: id }).lean();
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    if (!product) {
-      return NextResponse.json(
-        { error: "Product not found in database" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      product: {
-        ...product,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        _id: (product._id as any).toString(),
-      },
-    });
-  } catch (err) {
-    console.error("GET Product API Error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to fetch product details" },
-      { status: 500 }
-    );
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error("GET Product error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
-// 2. UPDATE PRODUCT (PUT)
+// PUT update a product
 export async function PUT(
-  req: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    // @ts-expect-error session role
-    const role = session?.user?.role;
-
-    if (role !== "superadmin" && role !== "admin") {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 403 }
-      );
-    }
-
-    const resolvedParams = await params;
-    const id = resolvedParams?.id;
-
-    const body = await req.json();
-    const {
-      name,
-      slug,
-      category,
-      price,
-      oldPrice,
-      weight,
-      stock,
-      image,
-      description,
-    } = body;
-
+    const { id } = await params;
+    const body = await request.json();
     await connectDB();
 
-    const categoryNames: Record<string, string> = {
-      "fresh-fruits": "Fruits",
-      vegetables: "Vegetables",
-      drinks: "Beverages",
-      snacks: "Snacks & Sweets",
-    };
-
-    let updatedProduct = null;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        {
-          name,
-          slug,
-          category,
-          categoryName: categoryNames[category] || category,
-          price: Number(price),
-          oldPrice: oldPrice ? Number(oldPrice) : 0,
-          weight,
-          stock: Number(stock) || 0,
-          image: image || "",
-          description: description || "",
-        },
-        { new: true }
-      );
-    } else {
-      updatedProduct = await Product.findOneAndUpdate(
-        { slug: id },
-        {
-          name,
-          slug,
-          category,
-          categoryName: categoryNames[category] || category,
-          price: Number(price),
-          oldPrice: oldPrice ? Number(oldPrice) : 0,
-          weight,
-          stock: Number(stock) || 0,
-          image: image || "",
-          description: description || "",
-        },
-        { new: true }
-      );
-    }
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      {
+        name: body.name,
+        category: body.category,
+        price: Number(body.price),
+        oldPrice: body.oldPrice ? Number(body.oldPrice) : undefined,
+        unit: body.unit,
+        image: body.image,
+        isFlashDeal: Boolean(body.isFlashDeal),
+        stock: body.stock ? Number(body.stock) : 100,
+        description: body.description || "",
+      },
+      { new: true, runValidators: true }
+    );
 
     if (!updatedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Product updated successfully!",
-      product: updatedProduct,
-    });
-  } catch (err) {
-    console.error("Update Product Error:", err);
-    return NextResponse.json(
-      { error: "Failed to update product" },
-      { status: 500 }
-    );
+    return NextResponse.json(updatedProduct);
+  } catch (error) {
+    console.error("PUT Product error:", error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
 
-// 3. DELETE PRODUCT
+// DELETE a product
 export async function DELETE(
-  req: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    // @ts-expect-error session role
-    const role = session?.user?.role;
-
-    if (role !== "superadmin" && role !== "admin") {
-      return NextResponse.json(
-        { error: "Unauthorized access" },
-        { status: 403 }
-      );
-    }
-
-    const resolvedParams = await params;
-    const id = resolvedParams?.id;
-
+    const { id } = await params;
     await connectDB();
 
-    let deletedProduct = null;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      deletedProduct = await Product.findByIdAndDelete(id);
-    } else {
-      deletedProduct = await Product.findOneAndDelete({ slug: id });
-    }
-
-    if (!deletedProduct) {
+    const deleted = await Product.findByIdAndDelete(id);
+    if (!deleted) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Product deleted successfully!",
-    });
-  } catch (err) {
-    console.error("Delete Product Error:", err);
-    return NextResponse.json(
-      { error: "Failed to delete product" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("DELETE Product error:", error);
+    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

@@ -26,7 +26,7 @@ export default function CartPage() {
       {/* 2. Cart Content */}
       <CartClient />
 
-      {/* 3. Features Section (NO NEWSLETTER HERE) */}
+      {/* 3. Features Section */}
       <section className="border-t border-[#e5e5e5] py-12">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="grid gap-6 md:grid-cols-3">

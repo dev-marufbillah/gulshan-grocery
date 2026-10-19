@@ -11,13 +11,14 @@ import {
   Image as ImageIcon,
   X,
   CheckCircle2,
+  Tag,
 } from "lucide-react";
 
 export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState(""); // 🌟 Custom Toast State
+  const [toast, setToast] = useState("");
 
   // Form States
   const [name, setName] = useState("");
@@ -28,6 +29,7 @@ export default function AddProductPage() {
   const [weight, setWeight] = useState("");
   const [stock, setStock] = useState("100");
   const [description, setDescription] = useState("");
+  const [isOffer, setIsOffer] = useState(false); // 🔥 Offer Toggle
 
   // Image States
   const [imageType, setImageType] = useState<"file" | "url">("file");
@@ -48,7 +50,6 @@ export default function AddProductPage() {
     );
   };
 
-  // Handle File Upload (Convert File to Base64)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -90,12 +91,13 @@ export default function AddProductPage() {
           name,
           slug,
           category,
-          price,
-          oldPrice,
+          price: Number(price),
+          oldPrice: oldPrice ? Number(oldPrice) : null,
           weight,
-          stock,
-          image: imageUrl, // Real Image Data
+          stock: Number(stock),
+          image: imageUrl,
           description,
+          isOffer, // 🔥 Offer flag পাঠানো হচ্ছে
         }),
       });
 
@@ -107,8 +109,11 @@ export default function AddProductPage() {
         return;
       }
 
-      // 🌟 Trigger Custom Toast Notification
-      setToast("Product added successfully!");
+      setToast(
+        isOffer
+          ? "Offer product added! Showing on Offers page."
+          : "Product added successfully!"
+      );
       setLoading(false);
 
       setTimeout(() => {
@@ -121,9 +126,15 @@ export default function AddProductPage() {
     }
   };
 
+  // Discount % হিসাব (লাইভ প্রিভিউ)
+  const discountPercent =
+    oldPrice && price && Number(oldPrice) > Number(price)
+      ? Math.round(((Number(oldPrice) - Number(price)) / Number(oldPrice)) * 100)
+      : 0;
+
   return (
     <div className="relative mx-auto max-w-4xl space-y-6">
-      {/* 🌟 CUSTOM FLOATING TOAST NOTIFICATION */}
+      {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 rounded-2xl bg-[#1E7F57] px-6 py-4 text-white shadow-2xl animate-in slide-in-from-top-5 duration-300">
           <CheckCircle2 size={24} className="text-[#FBC617]" />
@@ -144,7 +155,9 @@ export default function AddProductPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Add New Product</h1>
-          <p className="text-sm text-[#6b6b6b]">Fill in the details and upload product image.</p>
+          <p className="text-sm text-[#6b6b6b]">
+            Fill in the details and upload product image.
+          </p>
         </div>
       </div>
 
@@ -235,7 +248,7 @@ export default function AddProductPage() {
                   type="url"
                   value={imageUrl}
                   onChange={handleUrlChange}
-                  placeholder="Paste image URL (e.g. https://images.unsplash.com/photo-1610832958506)"
+                  placeholder="Paste image URL (e.g. https://images.unsplash.com/...)"
                   className={inputCls}
                 />
               )}
@@ -260,7 +273,7 @@ export default function AddProductPage() {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-              Product Slug *
+              Product Spug *
             </label>
             <input
               required
@@ -287,6 +300,10 @@ export default function AddProductPage() {
               <option value="vegetables">Vegetables</option>
               <option value="drinks">Beverages</option>
               <option value="snacks">Snacks &amp; Sweets</option>
+              <option value="milk-eggs">Milk &amp; Eggs</option>
+              <option value="bakery">Bakery</option>
+              <option value="meat-fish">Meat &amp; Fish</option>
+              <option value="house-hold">House Hold</option>
             </select>
           </div>
 
@@ -304,13 +321,16 @@ export default function AddProductPage() {
             />
           </div>
 
+          {/* 💰 PRICE */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-              Price (৳) *
+              Sale Price (৳) *
             </label>
             <input
               required
               type="number"
+              min="0"
+              step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="160"
@@ -318,17 +338,26 @@ export default function AddProductPage() {
             />
           </div>
 
+          {/* 💰 OLD PRICE */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-              Old Price (৳) (Optional)
+              Old Price (৳){" "}
+              <span className="font-normal text-[#6b6b6b]">(Optional)</span>
             </label>
             <input
               type="number"
+              min="0"
+              step="0.01"
               value={oldPrice}
               onChange={(e) => setOldPrice(e.target.value)}
               placeholder="200"
               className={inputCls}
             />
+            {discountPercent > 0 && (
+              <p className="mt-1.5 text-xs font-semibold text-red-500">
+                🔥 {discountPercent}% OFF will show on product
+              </p>
+            )}
           </div>
 
           <div>
@@ -338,12 +367,41 @@ export default function AddProductPage() {
             <input
               required
               type="number"
+              min="0"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
               placeholder="100"
               className={inputCls}
             />
           </div>
+        </div>
+
+        {/* 🔥 SPECIAL OFFER TOGGLE */}
+        <div
+          className={`flex items-start gap-3 rounded-2xl border p-4 transition ${
+            isOffer
+              ? "border-[#1E7F57] bg-[#E8F3EE]"
+              : "border-[#e5e5e5] bg-[#F9F9F9]"
+          }`}
+        >
+          <input
+            type="checkbox"
+            id="isOffer"
+            checked={isOffer}
+            onChange={(e) => setIsOffer(e.target.checked)}
+            className="mt-0.5 h-5 w-5 rounded border-gray-300 text-[#1E7F57] accent-[#1E7F57] cursor-pointer"
+          />
+          <label htmlFor="isOffer" className="cursor-pointer flex-1">
+            <span className="flex items-center gap-2 text-sm font-bold text-[#1a1a1a]">
+              <Tag size={16} className="text-[#1E7F57]" />
+              Mark as Flash Deal / Special Offer
+            </span>
+            <p className="mt-1 text-xs text-[#6b6b6b]">
+              Tick this box → product will automatically appear on the{" "}
+              <strong className="text-[#1E7F57]">/offers</strong> page
+              (Mobile bottom nav + Desktop menu).
+            </p>
+          </label>
         </div>
 
         <div>
