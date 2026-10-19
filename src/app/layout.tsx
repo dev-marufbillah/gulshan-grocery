@@ -1,15 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import { Suspense } from "react";
 import Header from "@/components/Header";
+import Providers from "@/components/Providers";
 import Footer from "@/components/Footer";
 import Newsletter from "@/components/Newsletter";
 import NewsletterPopup from "@/components/NewsletterPopup";
-import Providers from "@/components/Providers";
-
-export const metadata: Metadata = {
-  title: "Gulshan Grocery",
-  description: "Fresh grocery delivery in Gulshan, Dhaka",
-};
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -18,16 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans text-[#1a1a1a] antialiased">
+      <body>
         <Providers>
-          {/* গ্লোবাল হেডার (মোবাইল বটম নেভ অলরেডি হেডারের ভেতরে রেন্ডার হচ্ছে) */}
-          <Header />
-          
-          {/* 🌟 মোবাইলের জন্য নিচে প্যাডিং (pb-16) রাখা হয়েছে যাতে কন্টেন্ট নেভ বারের নিচে না ঢোকে */}
-          <div className="min-h-screen pb-16 md:pb-0">
-            {children}
-          </div>
-
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
+          <main className="min-h-screen pb-16 md:pb-0">{children}</main>
           <Newsletter />
           <Footer />
           <NewsletterPopup />

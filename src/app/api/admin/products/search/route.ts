@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { connection } from "next/server";
 import { connectDB } from "@/lib/db";
 import Product from "@/models/Product";
 
 type LeanSearchProduct = {
   _id: { toString(): string };
-  name?: string;
-  slug?: string;
-  price?: number;
+  name: string;
+  slug: string;
+  price: number;
   image?: string;
   emoji?: string;
   categoryName?: string;
@@ -14,37 +14,36 @@ type LeanSearchProduct = {
 };
 
 export async function GET(req: Request) {
+  await connection();
   try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q")?.trim() || "";
 
     if (!query || query.length < 2) {
-      return NextResponse.json({ success: true, products: [] });
+      return Response.json({ products: [] });
     }
 
     await connectDB();
 
     const rawProducts = await Product.find({
-      name: { $regex: query, $options: "i" },
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { categoryName: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
+      ],
     })
-      .limit(5)
-      .select("name slug price image emoji categoryName weight")
+      .select("_id name slug price image emoji categoryName weight")
+      .limit(8)
       .lean<LeanSearchProduct[]>();
 
-    const formatted = rawProducts.map((p) => ({
+    const products = rawProducts.map((p) => ({
+      ...p,
       _id: p._id.toString(),
-      name: p.name ?? "",
-      slug: p.slug ?? "",
-      price: p.price ?? 0,
-      image: p.image ?? "",
-      emoji: p.emoji ?? "🛒",
-      categoryName: p.categoryName ?? "",
-      weight: p.weight ?? "",
     }));
 
-    return NextResponse.json({ success: true, products: formatted });
-  } catch (err) {
-    console.error("Search API Error:", err);
-    return NextResponse.json({ error: "Failed to search" }, { status: 500 });
+    return Response.json({ products });
+  } catch (error) {
+    console.error("Search API Error:", error);
+    return Response.json({ products: [] }, { status: 500 });
   }
 }
