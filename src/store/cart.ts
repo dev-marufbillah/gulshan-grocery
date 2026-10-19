@@ -1,18 +1,23 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface CartItem {
   _id: string;
-  id?: string;
   name: string;
   price: number;
   oldPrice?: number;
-  image: string;
-  unit: string;
+  image?: string;
+  unit?: string;
   quantity: number;
+
+  // TypeScript compatibility across all components
+  slug?: string;
+  emoji?: string;
+  weight?: string;
+  qty?: number;
 }
 
-interface AddItemInput {
+export interface AddItemInput {
   _id?: string;
   id?: string;
   name: string;
@@ -23,11 +28,13 @@ interface AddItemInput {
   weight?: string;
   quantity?: number;
   qty?: number;
+  slug?: string;
+  emoji?: string;
 }
 
-interface CartStore {
+interface CartState {
   items: CartItem[];
-  addItem: (product: AddItemInput) => void;
+  addItem: (item: AddItemInput) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   clearCart: () => void;
@@ -35,87 +42,99 @@ interface CartStore {
   totalPrice: () => number;
 }
 
-export const useCartStore = create<CartStore>()(
+export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
 
-      addItem: (product) => {
-        const targetId = String(product._id || product.id || "").trim();
-        if (!targetId) return;
+      addItem: (input) => {
+        const itemId = String(input._id || input.id || '');
+        if (!itemId) return;
 
-        const currentItems = get().items;
-        const existingIndex = currentItems.findIndex(
-          (item) => String(item._id || item.id) === targetId
-        );
+        const qty = Number(input.quantity || input.qty || 1);
+        const unit = input.unit || input.weight || '';
+        const price = Number(input.price) || 0;
 
-        if (existingIndex > -1) {
-          const updatedItems = [...currentItems];
-          const existingItem = updatedItems[existingIndex];
-          const currentQty = Number(existingItem.quantity) || 1;
-          updatedItems[existingIndex] = {
-            ...existingItem,
-            quantity: currentQty + 1,
-          };
-          set({ items: updatedItems });
-        } else {
+        set((state) => {
+          const existingIndex = state.items.findIndex(
+            (i) => String(i._id) === itemId
+          );
+
+          if (existingIndex > -1) {
+            const newItems = [...state.items];
+            const existingItem = newItems[existingIndex];
+            const updatedQty = (Number(existingItem.quantity) || 0) + qty;
+            newItems[existingIndex] = {
+              ...existingItem,
+              quantity: updatedQty,
+              qty: updatedQty,
+            };
+            return { items: newItems };
+          }
+
           const newItem: CartItem = {
-            _id: targetId,
-            id: targetId,
-            name: product.name || "Product",
-            price: Number(product.price) || 0,
-            oldPrice: product.oldPrice ? Number(product.oldPrice) : undefined,
-            image: product.image || "",
-            unit: product.unit || product.weight || "1 pc",
-            quantity: Number(product.quantity || product.qty) || 1,
+            _id: itemId,
+            name: input.name || '',
+            price: price,
+            oldPrice: input.oldPrice,
+            image: input.image || '',
+            unit: unit,
+            weight: unit,
+            quantity: qty,
+            qty: qty,
+            slug: input.slug,
+            emoji: input.emoji,
           };
-          set({ items: [...currentItems, newItem] });
-        }
+
+          return { items: [...state.items, newItem] };
+        });
       },
 
       removeItem: (id) => {
-        const targetId = String(id).trim();
-        set({
-          items: get().items.filter(
-            (item) => String(item._id || item.id) !== targetId
-          ),
-        });
+        const targetId = String(id);
+        set((state) => ({
+          items: state.items.filter((i) => String(i._id) !== targetId),
+        }));
       },
 
       updateQuantity: (id, delta) => {
-        const targetId = String(id).trim();
-        set({
-          items: get()
-            .items.map((item) => {
-              const itemId = String(item._id || item.id);
-              if (itemId === targetId) {
-                const currentQty = Number(item.quantity) || 1;
-                const newQty = currentQty + delta;
-                return newQty > 0 ? { ...item, quantity: newQty } : null;
+        const targetId = String(id);
+        set((state) => ({
+          items: state.items
+            .map((i) => {
+              if (String(i._id) === targetId) {
+                const newQty = (Number(i.quantity) || 0) + delta;
+                return newQty > 0
+                  ? { ...i, quantity: newQty, qty: newQty }
+                  : null;
               }
-              return item;
+              return i;
             })
-            .filter(Boolean) as CartItem[],
-        });
+            .filter((i): i is CartItem => i !== null),
+        }));
       },
 
       clearCart: () => set({ items: [] }),
 
-      totalItems: () =>
-        get().items.reduce(
-          (sum, item) => sum + (Number(item.quantity) || 1),
+      totalItems: () => {
+        return get().items.reduce(
+          (sum, i) => sum + (Number(i.quantity) || Number(i.qty) || 0),
           0
-        ),
+        );
+      },
 
-      totalPrice: () =>
-        get().items.reduce(
-          (sum, item) =>
-            sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+      totalPrice: () => {
+        return get().items.reduce(
+          (sum, i) =>
+            sum +
+            (Number(i.price) || 0) *
+              (Number(i.quantity) || Number(i.qty) || 0),
           0
-        ),
+        );
+      },
     }),
     {
-      name: "gulshan-cart-storage",
+      name: 'gulshan-cart-storage',
     }
   )
 );
