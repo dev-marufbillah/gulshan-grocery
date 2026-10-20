@@ -1,8 +1,18 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities, @next/next/no-img-element */
 import { useState } from "react";
 import Link from "next/link";
-import { Edit, Trash2, Search, Sparkles, Tag } from "lucide-react";
+import { 
+  Edit, 
+  Trash2, 
+  Search, 
+  Sparkles, 
+  Tag, 
+  AlertTriangle, 
+  CheckCircle2, 
+  AlertCircle 
+} from "lucide-react";
 
 export type AdminProduct = {
   _id: string;
@@ -27,23 +37,51 @@ export default function ProductsTableClient({
   const [filter, setFilter] = useState<"all" | "offers">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+  // 🌟 Toast Notification State
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
-    setDeletingId(id);
+  // 🌟 Delete Confirmation Modal Popup State
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Trigger Delete Modal
+  const promptDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  // Perform Actual Delete
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setDeletingId(deleteTarget.id);
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/products/${deleteTarget.id}`, { 
+        method: "DELETE" 
+      });
       const data = await res.json();
-      if (data.success) {
-        setProducts((prev) => prev.filter((p) => p._id !== id));
+
+      if (res.ok || data.success) {
+        setProducts((prev) => prev.filter((p) => p._id !== deleteTarget.id));
+        showToast(`"${deleteTarget.name}" deleted successfully!`, "success");
       } else {
-        alert(data.error || "Failed to delete product");
+        showToast(data.message || data.error || "Failed to delete product", "error");
       }
     } catch (err) {
       console.error("Delete error", err);
-      alert("Failed to delete product");
+      showToast("Failed to delete product", "error");
     } finally {
       setDeletingId(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -64,7 +102,69 @@ export default function ProductsTableClient({
   ).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
+      {/* 🌟 Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-white shadow-2xl transition-all ${
+            toast.type === "success" ? "bg-[#1E7F57]" : "bg-red-600"
+          }`}
+        >
+          {toast.type === "success" ? (
+            <CheckCircle2 size={22} className="text-[#FBC617]" />
+          ) : (
+            <AlertCircle size={22} />
+          )}
+          <p className="text-sm font-bold">{toast.message}</p>
+        </div>
+      )}
+
+      {/* 🌟 CUSTOM DELETE CONFIRMATION MODAL POPUP */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-[#e5e5e5] space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#1a1a1a]">Delete Product</h3>
+                <p className="text-xs text-[#6b6b6b]">Confirm permanent deletion</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-[#1a1a1a]">
+              Are you sure you want to delete &quot;<span className="font-bold text-[#1E7F57]">{deleteTarget.name}</span>&quot;? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e5e5e5]">
+              <button
+                type="button"
+                disabled={!!deletingId}
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-full border border-[#e5e5e5] px-5 py-2.5 text-sm font-semibold text-[#6b6b6b] hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!!deletingId}
+                onClick={handleConfirmDelete}
+                className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50"
+              >
+                {deletingId ? (
+                  <span>Deleting...</span>
+                ) : (
+                  <>
+                    <Trash2 size={16} /> Yes, Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search & Filter Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-[#e5e5e5] bg-white p-4 shadow-xs">
         <div className="relative flex-1">
@@ -138,7 +238,6 @@ export default function ProductsTableClient({
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100 border border-gray-100">
                             {p.image ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={p.image}
                                 alt={p.name}
@@ -209,9 +308,10 @@ export default function ProductsTableClient({
                           </Link>
                           <button
                             type="button"
-                            onClick={() => handleDelete(p._id, p.name)}
+                            onClick={() => promptDelete(p._id, p.name)}
                             disabled={deletingId === p._id}
                             className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition"
+                            title="Delete Product"
                           >
                             <Trash2 size={15} />
                           </button>

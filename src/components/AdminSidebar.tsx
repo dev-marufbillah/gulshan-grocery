@@ -8,6 +8,7 @@ import {
   FolderTree,
   ShoppingCart,
   Users,
+  FileText,
   Settings,
   Store,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const MENU = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Customers", href: "/admin/users", icon: Users },
+  { label: "Blogs", href: "/admin/blogs", icon: FileText },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

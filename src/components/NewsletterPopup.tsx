@@ -4,8 +4,17 @@ import { useState, useEffect } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
+type PopupSettings = {
+  enabled: boolean;
+  subtitle: string;
+  title: string;
+  description: string;
+  image: string;
+};
+
 export default function NewsletterPopup() {
   const [isOpen, setIsOpen] = useState(false);
+  const [popupData, setPopupData] = useState<PopupSettings | null>(null);
   const [hasSubscribed, setHasSubscribed] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,17 +23,33 @@ export default function NewsletterPopup() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    // পপআপটি একবার দেখালে আর দেখাবে না (sessionStorage)
-    const hasSeenPopup = sessionStorage.getItem("seen-newsletter-popup");
+    async function fetchSettings() {
+      try {
+        const res = await fetch("/api/settings/newsletter");
+        if (!res.ok) return;
 
-    if (!hasSeenPopup) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        sessionStorage.setItem("seen-newsletter-popup", "true");
-      }, 3000);
+        const data: PopupSettings = await res.json();
+        setPopupData(data);
 
-      return () => clearTimeout(timer);
+        // যদি অ্যাডমিন থেকে On থাকে (enabled: true), তবেই দেখাবে
+        if (data && data.enabled) {
+          const hasSeenPopup = sessionStorage.getItem("seen-newsletter-popup");
+
+          if (!hasSeenPopup) {
+            const timer = setTimeout(() => {
+              setIsOpen(true);
+              sessionStorage.setItem("seen-newsletter-popup", "true");
+            }, 3000);
+
+            return () => clearTimeout(timer);
+          }
+        }
+      } catch (err) {
+        console.error("Newsletter settings fetch error:", err);
+      }
     }
+
+    fetchSettings();
   }, []);
 
   const handleClose = () => {
@@ -42,7 +67,6 @@ export default function NewsletterPopup() {
     setErrorMsg("");
 
     try {
-      // 🌟 Real DB API Call
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +90,7 @@ export default function NewsletterPopup() {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !popupData || !popupData.enabled) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-all duration-300">
@@ -85,12 +109,12 @@ export default function NewsletterPopup() {
 
         <div className="flex w-full flex-col md:flex-row">
           
-          {/* 🌟 Left Image Side (Exact Figma Supermarket Photo & Sparkles) */}
+          {/* 🌟 Left Image Side */}
           <div className="relative hidden w-1/2 overflow-hidden md:block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80"
-              alt="Grocery Shopping Woman"
+              src={popupData.image}
+              alt={popupData.title}
               className="h-full w-full object-cover object-center"
             />
 
@@ -110,13 +134,13 @@ export default function NewsletterPopup() {
           {/* Right Form Side */}
           <div className="flex w-full flex-col justify-center px-6 py-10 md:w-1/2 md:px-10 lg:px-12">
             <p className="text-xs font-semibold text-[#6b6b6b] uppercase tracking-wider">
-              Subscribe To Our Newsletter
+              {popupData.subtitle}
             </p>
             <h2 className="mt-2 text-3xl font-bold leading-tight text-[#1a1a1a]">
-              Get Weekly Newsletter
+              {popupData.title}
             </h2>
             <p className="mt-3 text-xs leading-relaxed text-[#6b6b6b]">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.
+              {popupData.description}
             </p>
 
             {hasSubscribed ? (

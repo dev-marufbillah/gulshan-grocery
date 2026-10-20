@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FaFacebookF,
@@ -8,6 +11,35 @@ import {
 } from "react-icons/fa";
 
 export default function Footer() {
+  const [description, setDescription] = useState(
+    "Fresh groceries delivered to your doorstep in Gulshan, Dhaka. Quality products, fast delivery, and great prices every day."
+  );
+  const [copyright, setCopyright] = useState(
+    "Copyright © 2024 Gulshan Grocery. All Rights Reserved."
+  );
+
+  useEffect(() => {
+    async function loadFooterSettings() {
+      try {
+        const res = await fetch("/api/admin/section-settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.settings?.footer) {
+            if (data.settings.footer.description) {
+              setDescription(data.settings.footer.description);
+            }
+            if (data.settings.footer.copyright) {
+              setCopyright(data.settings.footer.copyright);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load footer settings:", err);
+      }
+    }
+    loadFooterSettings();
+  }, []);
+
   return (
     <footer className="bg-[#1E7F57] pt-16 pb-8 text-white">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -24,8 +56,7 @@ export default function Footer() {
               Gulshan Grocery
             </Link>
             <p className="mt-6 text-sm leading-relaxed text-white/80">
-              Fresh groceries delivered to your doorstep in Gulshan, Dhaka.
-              Quality products, fast delivery, and great prices every day.
+              {description}
             </p>
             <div className="mt-6 flex items-center gap-3">
               <a
@@ -171,13 +202,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 text-sm text-white/80 sm:flex-row">
-          <p>
-            Copyright © 2024{" "}
-            <span className="font-semibold text-[#FBC617]">
-              Gulshan Grocery
-            </span>
-            . All Rights Reserved.
-          </p>
+          <p>{copyright}</p>
           <div className="flex gap-4">
             <span>English ⌄</span>
             <span>BDT ৳ ⌄</span>

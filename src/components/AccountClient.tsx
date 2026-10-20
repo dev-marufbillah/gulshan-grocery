@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -194,6 +194,10 @@ export default function AccountClient() {
   const [email, setEmail] = useState("example@gmail.com");
   const [phone, setPhone] = useState("+880 1700-000000");
   const [gender, setGender] = useState("Female");
+  
+  // Profile Photo Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profilePic, setProfilePic] = useState<string | null>(null);
 
   // Password State
   const [currentPass, setCurrentPass] = useState("");
@@ -274,6 +278,15 @@ export default function AccountClient() {
     setAZip("1212");
     setAPhone("+880 1700-000000");
     setAEmail("example@gmail.com");
+  };
+
+  // Image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfilePic(url);
+    }
   };
 
   const handleUpdatePersonal = (e: React.FormEvent) => {
@@ -406,10 +419,26 @@ export default function AccountClient() {
               <div className="mb-8 sm:mb-10 flex justify-center lg:justify-start">
                 <div className="relative">
                   <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#d4ebe0] to-[#a8d4b8] text-4xl sm:text-5xl ring-4 ring-white shadow-md">
-                    👩
+                    {profilePic ? (
+                      <img
+                        src={profilePic}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      "👩"
+                    )}
                   </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                   <button
                     type="button"
+                    onClick={() => fileInputRef.current?.click()}
                     aria-label="Edit photo"
                     className="absolute bottom-1 right-1 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#1E7F57] text-white shadow ring-2 ring-white hover:bg-[#166b48]"
                   >

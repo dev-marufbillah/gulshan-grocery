@@ -1,18 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, CreditCard, Banknote } from "lucide-react";
-import { FaPaypal, FaCcVisa, FaGooglePay } from "react-icons/fa";
+import { ShoppingBag, Building2, Smartphone } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 
 const METHOD_LABELS: Record<string, string> = {
-  paypal: "Paypal",
-  visa: "Visa Card",
-  googlepay: "Google Pay",
-  cod: "Cash On Delivery",
-  newcard: "Credit/Debit Card",
+  bkash: "bKash",
+  nagad: "Nagad",
+  bank: "Bank Pay",
+};
+
+type PaymentSettings = {
+  bkashNumber: string;
+  nagadNumber: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankBranch: string;
 };
 
 function makeOrderId() {
@@ -48,8 +54,36 @@ export default function PaymentClient() {
   const totalPrice = useCartStore((s) => s.totalPrice());
   const clearCart = useCartStore((s) => s.clearCart);
 
-  const [paymentMethod, setPaymentMethod] = useState("paypal");
+  const [paymentMethod, setPaymentMethod] = useState("bkash");
   const [loading, setLoading] = useState(false);
+  const [trxId, setTrxId] = useState("");
+  const [settings, setSettings] = useState<PaymentSettings>({
+    bkashNumber: "",
+    nagadNumber: "",
+    bankName: "",
+    bankAccountName: "",
+    bankAccountNumber: "",
+    bankBranch: "",
+  });
+
+  useEffect(() => {
+    fetch("/api/admin/section-settings")
+      .then((r) => r.json())
+      .then((data) => {
+        const p = data?.payment || data || {};
+        setSettings({
+          bkashNumber: p.bkashNumber || "",
+          nagadNumber: p.nagadNumber || "",
+          bankName: p.bankName || "",
+          bankAccountName: p.bankAccountName || "",
+          bankAccountNumber: p.bankAccountNumber || "",
+          bankBranch: p.bankBranch || "",
+        });
+      })
+      .catch(() => {
+        // keep empty fallbacks
+      });
+  }, []);
 
   const subTotal = totalPrice;
   const shipping = items.length > 0 && subTotal < 500 ? 60 : 0;
@@ -58,10 +92,15 @@ export default function PaymentClient() {
   const total = subTotal + shipping + taxes - discount;
 
   const handleConfirmPayment = async () => {
+    if (!trxId.trim()) {
+      alert("Please enter your Transaction ID / Reference.");
+      return;
+    }
+
     setLoading(true);
 
     const orderId = makeOrderId();
-    const txnId = makeTxnId();
+    const txnId = trxId.trim() || makeTxnId();
     const deliveryDate = deliveryDateLabel();
     const chosenMethod = METHOD_LABELS[paymentMethod] || paymentMethod;
 
@@ -79,7 +118,6 @@ export default function PaymentClient() {
     };
 
     try {
-      // 🌟 Real DB Save via API
       await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -99,16 +137,12 @@ export default function PaymentClient() {
           })),
           totalAmount: total,
           paymentMethod: chosenMethod,
+          transactionId: txnId,
         }),
       });
 
-      // Local Session Backup for Success Screen
       sessionStorage.setItem("gulshan-last-order", JSON.stringify(snapshot));
-
-      // Clear Cart
       clearCart();
-
-      // Redirect
       router.push("/order-completed");
     } catch {
       alert("Failed to connect to server. Redirecting anyway...");
@@ -149,91 +183,10 @@ export default function PaymentClient() {
           </h2>
 
           <div className="space-y-4">
-            <label
-              className={`flex cursor-pointer items-center gap-4 rounded-xl border px-6 py-5 transition ${
-                paymentMethod === "paypal"
-                  ? "border-[#1E7F57] bg-[#F4F9F7]"
-                  : "border-[#e5e5e5] hover:border-[#1E7F57]"
-              }`}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="paypal"
-                checked={paymentMethod === "paypal"}
-                onChange={() => setPaymentMethod("paypal")}
-                className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
-              />
-              <FaPaypal className="text-[#00457C]" size={24} />
-              <span className="font-semibold text-[#1a1a1a]">Paypal</span>
-            </label>
-
-            <label
-              className={`flex cursor-pointer items-center gap-4 rounded-xl border px-6 py-5 transition ${
-                paymentMethod === "visa"
-                  ? "border-[#1E7F57] bg-[#F4F9F7]"
-                  : "border-[#e5e5e5] hover:border-[#1E7F57]"
-              }`}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="visa"
-                checked={paymentMethod === "visa"}
-                onChange={() => setPaymentMethod("visa")}
-                className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
-              />
-              <FaCcVisa className="text-[#1434CB]" size={28} />
-              <span className="font-semibold text-[#1a1a1a]">
-                **** **** **** 8047
-              </span>
-            </label>
-
-            <label
-              className={`flex cursor-pointer items-center gap-4 rounded-xl border px-6 py-5 transition ${
-                paymentMethod === "googlepay"
-                  ? "border-[#1E7F57] bg-[#F4F9F7]"
-                  : "border-[#e5e5e5] hover:border-[#1E7F57]"
-              }`}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="googlepay"
-                checked={paymentMethod === "googlepay"}
-                onChange={() => setPaymentMethod("googlepay")}
-                className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
-              />
-              <FaGooglePay className="text-[#1a1a1a]" size={36} />
-              <span className="-ml-2 font-semibold text-[#1a1a1a]">
-                Google Pay
-              </span>
-            </label>
-
-            <label
-              className={`flex cursor-pointer items-center gap-4 rounded-xl border px-6 py-5 transition ${
-                paymentMethod === "cod"
-                  ? "border-[#1E7F57] bg-[#F4F9F7]"
-                  : "border-[#e5e5e5] hover:border-[#1E7F57]"
-              }`}
-            >
-              <input
-                type="radio"
-                name="payment"
-                value="cod"
-                checked={paymentMethod === "cod"}
-                onChange={() => setPaymentMethod("cod")}
-                className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
-              />
-              <Banknote className="text-[#1E7F57]" size={24} />
-              <span className="font-semibold text-[#1a1a1a]">
-                Cash On Delivery
-              </span>
-            </label>
-
+            {/* bKash */}
             <div
               className={`overflow-hidden rounded-xl border transition ${
-                paymentMethod === "newcard"
+                paymentMethod === "bkash"
                   ? "border-[#1E7F57] bg-[#F4F9F7]"
                   : "border-[#e5e5e5]"
               }`}
@@ -242,67 +195,189 @@ export default function PaymentClient() {
                 <input
                   type="radio"
                   name="payment"
-                  value="newcard"
-                  checked={paymentMethod === "newcard"}
-                  onChange={() => setPaymentMethod("newcard")}
+                  value="bkash"
+                  checked={paymentMethod === "bkash"}
+                  onChange={() => {
+                    setPaymentMethod("bkash");
+                    setTrxId("");
+                  }}
                   className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
                 />
-                <CreditCard className="text-[#1E7F57]" size={24} />
-                <span className="font-semibold text-[#1a1a1a]">
-                  Add New Credit/Debit Card
-                </span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E2136E] text-sm font-bold text-white">
+                  bK
+                </div>
+                <span className="font-semibold text-[#1a1a1a]">bKash</span>
               </label>
 
-              {paymentMethod === "newcard" && (
-                <div className="border-t border-[#1E7F57]/20 px-6 pb-6 pt-6">
-                  <div className="space-y-5">
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-                        Card Holder Name *
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ex. John Doe"
-                        className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
-                      />
+              {paymentMethod === "bkash" && (
+                <div className="border-t border-[#1E7F57]/20 px-6 pb-6 pt-5">
+                  <p className="text-sm text-[#6b6b6b]">
+                    Send{" "}
+                    <span className="font-bold text-[#1a1a1a]">
+                      ৳{total.toFixed(2)}
+                    </span>{" "}
+                    to bKash Personal:
+                  </p>
+                  <p className="mt-2 text-lg font-bold text-[#E2136E]">
+                    {settings.bkashNumber || "Not set in Admin"}
+                  </p>
+                  <p className="mt-1 text-xs text-[#6b6b6b]">
+                    After payment, enter your bKash Transaction ID below.
+                  </p>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                      bKash TrxID *
+                    </label>
+                    <input
+                      type="text"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      placeholder="e.g. 8N7A2BX5K1"
+                      className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Nagad */}
+            <div
+              className={`overflow-hidden rounded-xl border transition ${
+                paymentMethod === "nagad"
+                  ? "border-[#1E7F57] bg-[#F4F9F7]"
+                  : "border-[#e5e5e5]"
+              }`}
+            >
+              <label className="flex cursor-pointer items-center gap-4 px-6 py-5 transition hover:bg-[#F4F9F7]">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="nagad"
+                  checked={paymentMethod === "nagad"}
+                  onChange={() => {
+                    setPaymentMethod("nagad");
+                    setTrxId("");
+                  }}
+                  className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
+                />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F15A29] text-sm font-bold text-white">
+                  N
+                </div>
+                <span className="font-semibold text-[#1a1a1a]">Nagad</span>
+              </label>
+
+              {paymentMethod === "nagad" && (
+                <div className="border-t border-[#1E7F57]/20 px-6 pb-6 pt-5">
+                  <p className="text-sm text-[#6b6b6b]">
+                    Send{" "}
+                    <span className="font-bold text-[#1a1a1a]">
+                      ৳{total.toFixed(2)}
+                    </span>{" "}
+                    to Nagad Personal:
+                  </p>
+                  <p className="mt-2 text-lg font-bold text-[#F15A29]">
+                    {settings.nagadNumber || "Not set in Admin"}
+                  </p>
+                  <p className="mt-1 text-xs text-[#6b6b6b]">
+                    After payment, enter your Nagad Transaction ID below.
+                  </p>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                      Nagad TrxID *
+                    </label>
+                    <input
+                      type="text"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      placeholder="e.g. 7A1B9C2D3E"
+                      className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bank Pay */}
+            <div
+              className={`overflow-hidden rounded-xl border transition ${
+                paymentMethod === "bank"
+                  ? "border-[#1E7F57] bg-[#F4F9F7]"
+                  : "border-[#e5e5e5]"
+              }`}
+            >
+              <label className="flex cursor-pointer items-center gap-4 px-6 py-5 transition hover:bg-[#F4F9F7]">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="bank"
+                  checked={paymentMethod === "bank"}
+                  onChange={() => {
+                    setPaymentMethod("bank");
+                    setTrxId("");
+                  }}
+                  className="h-5 w-5 cursor-pointer accent-[#1E7F57]"
+                />
+                <Building2 className="text-[#1E7F57]" size={24} />
+                <span className="font-semibold text-[#1a1a1a]">Bank Pay</span>
+              </label>
+
+              {paymentMethod === "bank" && (
+                <div className="border-t border-[#1E7F57]/20 px-6 pb-6 pt-5">
+                  <p className="mb-3 text-sm text-[#6b6b6b]">
+                    Transfer{" "}
+                    <span className="font-bold text-[#1a1a1a]">
+                      ৳{total.toFixed(2)}
+                    </span>{" "}
+                    to the bank account below:
+                  </p>
+                  <div className="space-y-2 rounded-xl bg-white p-4 text-sm border border-[#e5e5e5]">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[#6b6b6b]">Bank Name</span>
+                      <span className="font-semibold text-[#1a1a1a] text-right">
+                        {settings.bankName || "—"}
+                      </span>
                     </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-                        Card Number *
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="4716 9627 1635 8047"
-                        className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
-                      />
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[#6b6b6b]">Account Name</span>
+                      <span className="font-semibold text-[#1a1a1a] text-right">
+                        {settings.bankAccountName || "—"}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-5">
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-                          Expiry Date *
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="02/30"
-                          className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
-                          CVV *
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="000"
-                          className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
-                        />
-                      </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[#6b6b6b]">Account Number</span>
+                      <span className="font-semibold text-[#1E7F57] text-right">
+                        {settings.bankAccountNumber || "—"}
+                      </span>
                     </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-[#6b6b6b]">Branch</span>
+                      <span className="font-semibold text-[#1a1a1a] text-right">
+                        {settings.bankBranch || "—"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
+                      Bank Reference / TrxID *
+                    </label>
+                    <input
+                      type="text"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      placeholder="Enter transfer reference"
+                      className="w-full rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm outline-none focus:border-[#1E7F57]"
+                    />
                   </div>
                 </div>
               )}
             </div>
           </div>
+
+          <p className="mt-4 flex items-start gap-2 text-xs text-[#6b6b6b]">
+            <Smartphone size={14} className="mt-0.5 shrink-0 text-[#1E7F57]" />
+            Only bKash, Nagad and Bank Pay are accepted. Cash on Delivery is not
+            available.
+          </p>
         </div>
 
         {/* Right: Summary */}
@@ -333,6 +408,12 @@ export default function PaymentClient() {
                 <span className="text-[#6b6b6b]">Taxes</span>
                 <span className="font-bold text-[#1a1a1a]">
                   ৳{taxes.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#6b6b6b]">Method</span>
+                <span className="font-bold text-[#1a1a1a]">
+                  {METHOD_LABELS[paymentMethod]}
                 </span>
               </div>
 

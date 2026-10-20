@@ -1,20 +1,41 @@
-import { Schema, models, model } from "mongoose";
+import mongoose, { Schema, models, Document } from "mongoose";
 
-const BlogSchema = new Schema(
+export interface IBlog extends Document {
+  title: string;
+  slug: string;
+  category: string;
+  author: string;
+  image: string;
+  intro: string;
+  sections: { title: string; body: string }[];
+  tips: string[];
+  features: { title: string; text: string }[];
+  createdAt: Date;
+}
+
+const blogSchema = new Schema<IBlog>(
   {
-    title: { type: String, required: true, trim: true },
+    title: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    category: { type: String, required: true },
-    author: { type: String, default: "Jenny Alexander" },
-    publishedAt: { type: Date, default: Date.now },
-    excerpt: { type: String, default: "" },
-    image: { type: String, default: "" }, // jemon "/images/blog-1.jpg"
-    emoji: { type: String, default: "📰" }, // image na thakle eta dekhabe
-    order: { type: Number, default: 0 },
+    category: { type: String, default: "Grocery" },
+    author: { type: String, default: "Gulshan Team" },
+    image: { type: String, required: true },
+    intro: { type: String, required: true },
+    sections: [
+      {
+        title: { type: String },
+        body: { type: String },
+      },
+    ],
+    tips: [{ type: String }],
+    features: [
+      {
+        title: { type: String },
+        text: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const Blog = models.Blog || model("Blog", BlogSchema);
-
-export default Blog;
+export const Blog = models.Blog || mongoose.model<IBlog>("Blog", blogSchema);

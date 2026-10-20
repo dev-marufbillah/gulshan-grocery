@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities, @next/next/no-img-element */
 import { useEffect, useState, useCallback } from "react";
 import {
   Search,
@@ -12,6 +13,7 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   X,
+  AlertTriangle,
 } from "lucide-react";
 
 type CategoryData = {
@@ -33,6 +35,13 @@ export default function AdminCategoriesPage() {
     message: string;
     type: "success" | "error";
   } | null>(null);
+
+  // Delete Confirmation Modal Popup State
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form States
   const [showForm, setShowForm] = useState(false);
@@ -182,11 +191,18 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = async (id: string, catName: string) => {
-    if (!confirm(`Are you sure you want to delete "${catName}"?`)) return;
+  // Trigger Delete Confirmation Popup
+  const promptDelete = (id: string, catName: string) => {
+    setDeleteTarget({ id, name: catName });
+  };
+
+  // Perform Actual Delete on Confirm
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
 
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, {
+      const res = await fetch(`/api/admin/categories/${deleteTarget.id}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -199,6 +215,9 @@ export default function AdminCategoriesPage() {
       }
     } catch {
       showToast("Network error while deleting category", "error");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -212,7 +231,7 @@ export default function AdminCategoriesPage() {
     "w-full rounded-full border border-[#e5e5e5] px-5 py-3.5 text-sm outline-none transition focus:border-[#1E7F57] bg-white text-[#1a1a1a]";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -226,6 +245,53 @@ export default function AdminCategoriesPage() {
             <AlertCircle size={22} />
           )}
           <p className="text-sm font-bold">{toast.message}</p>
+        </div>
+      )}
+
+      {/* CUSTOM DELETE CONFIRMATION MODAL POPUP */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-[#e5e5e5] space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 shrink-0">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#1a1a1a]">Delete Category</h3>
+                <p className="text-xs text-[#6b6b6b]">Confirm permanent deletion</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-[#1a1a1a]">
+              Are you sure you want to delete{" "}
+              <span className="font-bold text-[#1E7F57]">&quot;{deleteTarget.name}&quot;</span>? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e5e5e5]">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-full border border-[#e5e5e5] px-5 py-2.5 text-sm font-semibold text-[#6b6b6b] hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleConfirmDelete}
+                className="rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <span>Deleting...</span>
+                ) : (
+                  <>
+                    <Trash2 size={16} /> Yes, Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -257,7 +323,7 @@ export default function AdminCategoriesPage() {
             Create New Category
           </h2>
 
-          {/* 🌟 CATEGORY IMAGE SELECTION (FILE UPLOAD OR URL LINK) */}
+          {/* CATEGORY IMAGE SELECTION */}
           <div className="mb-6">
             <label className="mb-2 block text-sm font-semibold text-[#1a1a1a]">
               Category Image *
@@ -296,7 +362,6 @@ export default function AdminCategoriesPage() {
 
             {imagePreview ? (
               <div className="relative flex h-36 w-36 items-center justify-center rounded-2xl border border-[#e5e5e5] bg-[#F9F9F9] p-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreview}
                   alt="Preview"
@@ -444,7 +509,6 @@ export default function AdminCategoriesPage() {
                       <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e5e5e5] bg-[#F9F9F9] text-2xl">
                           {c.icon && c.icon.length > 5 ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={c.icon}
                               alt={c.name}
@@ -475,8 +539,8 @@ export default function AdminCategoriesPage() {
                     <td className="px-6 py-4 text-right">
                       <button
                         type="button"
-                        onClick={() => handleDelete(c._id, c.name)}
-                        className="text-red-500 transition hover:text-red-700"
+                        onClick={() => promptDelete(c._id, c.name)}
+                        className="text-red-500 transition hover:text-red-700 p-2 hover:bg-red-50 rounded-lg"
                         title="Delete"
                       >
                         <Trash2 size={18} />
