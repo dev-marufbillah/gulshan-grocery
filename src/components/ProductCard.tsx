@@ -70,7 +70,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
       oldPrice: product.oldPrice,
       image: product.image || "",
       unit: weightDisplayName,
-      quantity: 1, // 👈 Explicit quantity addition
+      quantity: 1,
     });
 
     setAdded(true);

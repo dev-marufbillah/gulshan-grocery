@@ -71,6 +71,7 @@ async function HomeContent() {
 
   // Formatted Products
   const products: ProductItem[] = rawProducts.map((p) => ({
+    _id: p._id.toString(),
     id: p._id.toString(),
     slug: p.slug ?? "",
     name: p.name ?? "",
@@ -136,9 +137,13 @@ async function HomeContent() {
       />
       <CategoryRow categories={categories} />
       <PromoBanners data={sectionData?.promoBanners} />
-      <FeaturedProducts products={featuredProducts} />
+
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <FeaturedProducts products={featuredProducts as any} />
       <TodayDeals />
-      <BestSellers products={bestSellers} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <BestSellers products={bestSellers as any} />
+
       <Testimonials />
       <LatestBlogs />
       <Faq data={sectionData?.faq} />
