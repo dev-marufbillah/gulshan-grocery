@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import Blog from "@/models/Blog";
-
+import { Blog } from "@/models/Blog"
 const data = [
   {
     title: "How to Create a Grocery Shopping List: Stay Organized and Save Money",
