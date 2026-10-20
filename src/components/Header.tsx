@@ -5,15 +5,12 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
-  ChevronDown,
   Heart,
   Menu,
-  MapPin,
   Search,
   ShoppingBasket,
   ShoppingBag,
   User,
-  Check,
   ShieldCheck,
   Home,
   Tag,
@@ -28,7 +25,7 @@ import {
 } from "react-icons/fa";
 import { useCartStore } from "@/store/cart";
 import { useWishlistStore } from "@/store/wishlist";
-import { useNavStore } from "@/store/navStore"; // ✅ Added Dynamic Nav Store
+import { useNavStore } from "@/store/navStore";
 
 type SearchResultItem = {
   _id: string;
@@ -49,15 +46,6 @@ const socials = [
   { Icon: FaYoutube, href: "#", label: "YouTube" },
 ];
 
-const LOCATIONS = [
-  "Gulshan 1, Dhaka",
-  "Gulshan 2, Dhaka",
-  "Banani, Dhaka",
-  "Baridhara, Dhaka",
-  "Niketan, Dhaka",
-  "Badda, Dhaka",
-];
-
 const emptySubscribe = () => () => {};
 function useHydrated() {
   return useSyncExternalStore(
@@ -65,21 +53,6 @@ function useHydrated() {
     () => true,
     () => false
   );
-}
-
-function subscribeLocal(callback: () => void) {
-  if (typeof window === "undefined") return () => {};
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
-function getLocalLocation() {
-  if (typeof window === "undefined") return "Gulshan 1, Dhaka";
-  return localStorage.getItem("gulshan-user-location") || "Gulshan 1, Dhaka";
-}
-
-function getServerLocation() {
-  return "Gulshan 1, Dhaka";
 }
 
 function CartBadge() {
@@ -112,72 +85,6 @@ function WishlistBadge() {
         </span>
       )}
     </Link>
-  );
-}
-
-function LocationSelector() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const selectedLocation = useSyncExternalStore(
-    subscribeLocal,
-    getLocalLocation,
-    getServerLocation
-  );
-
-  const handleSelect = (loc: string) => {
-    localStorage.setItem("gulshan-user-location", loc);
-    window.dispatchEvent(new Event("storage"));
-    setIsOpen(false);
-  };
-
-  return (
-    <div className="relative hidden shrink-0 flex-col items-start text-left lg:flex">
-      <span className="text-[10px] uppercase tracking-wider text-white/80">
-        Location
-      </span>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-sm font-semibold text-white outline-none transition hover:text-[#FBC617]"
-      >
-        <MapPin size={16} className="text-[#FBC617]" fill="#FBC617" />
-        <span>{selectedLocation}</span>
-        <ChevronDown
-          size={14}
-          className={`text-[#FBC617] transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-2xl border border-[#e5e5e5] bg-white p-2 shadow-xl animate-in fade-in zoom-in-95">
-          <p className="border-b border-[#e5e5e5] px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-[#6b6b6b]">
-            Select Delivery Area
-          </p>
-          <div className="mt-1 space-y-0.5">
-            {LOCATIONS.map((loc) => {
-              const isSelected = selectedLocation === loc;
-              return (
-                <button
-                  key={loc}
-                  type="button"
-                  onClick={() => handleSelect(loc)}
-                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                    isSelected
-                      ? "bg-[#E8F3EE] text-[#1E7F57]"
-                      : "text-[#1a1a1a] hover:bg-[#F9F9F9]"
-                  }`}
-                >
-                  <span>{loc}</span>
-                  {isSelected && <Check size={14} className="text-[#1E7F57]" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -255,11 +162,10 @@ function MobileBottomNav() {
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const hydrated = useHydrated(); // ✅ For Dynamic Nav
+  const hydrated = useHydrated();
   const { data: session } = useSession();
-  const navItems = useNavStore((s) => s.items); // ✅ Get Nav Items from Store
+  const navItems = useNavStore((s) => s.items);
 
-  const [category, setCategory] = useState("All Categories");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -360,40 +266,32 @@ export default function Header() {
                 </span>
               </Link>
 
-              <LocationSelector />
-
-              <div className="relative hidden order-last lg:order-0 lg:flex h-12 w-full min-w-0 flex-1 items-center">
+              {/* Desktop Search (Category + Location removed) */}
+              <div className="relative hidden lg:flex h-12 w-full min-w-0 max-w-2xl flex-1 items-center mx-auto">
                 <form
                   onSubmit={handleSearchSubmit}
-                  className="flex h-full w-full items-center rounded-xl bg-white/15 px-4"
+                  className="flex h-full w-full items-center rounded-full bg-white pl-5 pr-1.5 shadow-sm ring-2 ring-transparent transition focus-within:ring-[#FBC617]"
                 >
-                  <div className="flex items-center gap-3 border-r border-white/30 pr-3 text-sm sm:gap-6 sm:pr-4">
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="cursor-pointer bg-transparent text-white outline-none [&>option]:text-black"
-                    >
-                      <option value="All Categories">All Categories</option>
-                      <option value="fruits">Fruits</option>
-                      <option value="vegetables">Vegetables</option>
-                      <option value="drinks">Beverages</option>
-                    </select>
-                  </div>
+                  <Search size={18} className="shrink-0 text-[#6b6b6b]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={handleSearchInputChange}
                     onFocus={() => searchQuery.trim().length >= 2 && setShowDropdown(true)}
-                    placeholder="Search for products..."
-                    className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm text-white placeholder:text-white/70 focus:outline-none"
+                    placeholder="Search for fruits, vegetables, groceries..."
+                    className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-[#1a1a1a] placeholder:text-[#9a9a9a] focus:outline-none"
                   />
-                  <button type="submit" aria-label="Search" className="shrink-0 pl-2">
-                    <Search size={18} />
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    className="flex h-9 shrink-0 items-center justify-center rounded-full bg-[#FBC617] px-6 text-sm font-bold text-[#1a1a1a] transition hover:bg-yellow-400 active:scale-95"
+                  >
+                    Search
                   </button>
                 </form>
 
                 {showDropdown && (
-                  <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95">
+                  <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white p-3 text-[#1a1a1a] shadow-2xl animate-in fade-in zoom-in-95">
                     {isSearching ? (
                       <div className="p-4 text-center text-xs font-semibold text-[#6b6b6b]">Searching products...</div>
                     ) : searchResults.length > 0 ? (
@@ -435,20 +333,22 @@ export default function Header() {
                   type="button"
                   onClick={() => setShowMobileSearch(!showMobileSearch)}
                   className="text-white hover:text-[#FBC617] lg:hidden p-0.5"
+                  aria-label="Toggle search"
                 >
                   <Search size={20} className="sm:w-5.5 sm:h-5.5" />
                 </button>
 
                 <WishlistBadge />
-                
+
                 <div className="hidden lg:block">
                   <CartBadge />
                 </div>
 
+                {/* Mobile-e hidden (bottom nav-e Profile ache), PC-te dekha jabe */}
                 <Link
-                  href={session ? "/account" : "/login"}
+                  href={hydrated && session ? "/account" : "/login"}
                   aria-label="Account"
-                  className="text-white hover:text-[#FBC617] p-0.5"
+                  className="hidden lg:block text-white hover:text-[#FBC617] p-0.5"
                   title="Account"
                 >
                   <User size={20} className="sm:w-5.5 sm:h-5.5" />
@@ -465,21 +365,27 @@ export default function Header() {
               </div>
             </div>
 
+            {/* Mobile Search */}
             {showMobileSearch && (
               <div className="mt-3 pb-2 lg:hidden animate-in fade-in slide-in-from-top-2">
                 <form
                   onSubmit={handleSearchSubmit}
-                  className="flex h-11 sm:h-12 w-full items-center rounded-xl bg-white/15 px-3 sm:px-4"
+                  className="flex h-11 sm:h-12 w-full items-center rounded-full bg-white pl-4 pr-1.5 shadow-sm ring-2 ring-transparent transition focus-within:ring-[#FBC617]"
                 >
+                  <Search size={17} className="shrink-0 text-[#6b6b6b]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={handleSearchInputChange}
                     placeholder="Search products..."
-                    className="h-full min-w-0 flex-1 bg-transparent px-2 text-xs sm:text-sm text-white placeholder:text-white/70 focus:outline-none"
+                    className="h-full min-w-0 flex-1 bg-transparent px-2.5 text-xs sm:text-sm text-[#1a1a1a] placeholder:text-[#9a9a9a] focus:outline-none"
                   />
-                  <button type="submit" aria-label="Search" className="shrink-0 pl-2">
-                    <Search size={18} />
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    className="flex h-8 sm:h-9 shrink-0 items-center justify-center rounded-full bg-[#FBC617] px-4 text-xs sm:text-sm font-bold text-[#1a1a1a] transition hover:bg-yellow-400 active:scale-95"
+                  >
+                    Search
                   </button>
                 </form>
               </div>
@@ -494,7 +400,6 @@ export default function Header() {
                 Browse All Categories
               </Link>
 
-              {/* ✅ DYNAMIC NAVIGATION RENDERED HERE */}
               <nav className="flex flex-1 items-center gap-6 text-sm font-medium">
                 {hydrated &&
                   navItems.map((l) => (

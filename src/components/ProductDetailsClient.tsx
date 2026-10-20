@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Star, Minus, Plus } from "lucide-react";
 import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa";
 import { useCartStore } from "@/store/cart";
@@ -56,20 +57,25 @@ const REVIEWS = [
   },
 ];
 
+// Buy Now click korle je page-e jabe. Apnar checkout page onno path-e hole eta bodle nin.
+const CHECKOUT_PATH = "/checkout";
+
 export default function ProductDetailsClient({
   product,
 }: {
   product: ProductDetailsData;
 }) {
+  const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
   const [activeWeight, setActiveWeight] = useState(product.weight || "500 g");
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [added, setAdded] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const addItem = useCartStore((s) => s.addItem);
 
-  const handleAddToCart = () => {
+  const addToCartItem = () => {
     addItem({
       id: product._id,
       slug: product.slug,
@@ -79,8 +85,53 @@ export default function ProductDetailsClient({
       weight: activeWeight,
       qty,
     });
+  };
+
+  const handleAddToCart = () => {
+    addToCartItem();
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
+  };
+
+  const handleBuyNow = () => {
+    addToCartItem();
+    router.push(CHECKOUT_PATH);
+  };
+
+  // ---------- Social share ----------
+  const getShareUrl = () =>
+    typeof window !== "undefined" ? window.location.href : "";
+
+  const shareFacebook = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      "_blank",
+      "noopener,noreferrer,width=600,height=500"
+    );
+  };
+
+  const shareTwitter = () => {
+    const url = encodeURIComponent(getShareUrl());
+    const text = encodeURIComponent(product.name);
+    window.open(
+      `https://twitter.com/intent/tweet?url=${url}&text=${text}`,
+      "_blank",
+      "noopener,noreferrer,width=600,height=500"
+    );
+  };
+
+  // Instagram-e web share link nei, tai link copy hoye Instagram khule jay
+  const shareInstagram = async () => {
+    const url = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // clipboard kaj na korle shudhu Instagram khulbe
+    }
+    window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -193,6 +244,7 @@ export default function ProductDetailsClient({
               </button>
               <button
                 type="button"
+                onClick={handleBuyNow}
                 className="flex h-12 flex-1 items-center justify-center rounded-full bg-[#FBC617] px-8 font-semibold text-[#1a1a1a] transition hover:bg-yellow-500"
               >
                 Buy Now
@@ -204,10 +256,36 @@ export default function ProductDetailsClient({
               <p><span className="font-semibold">Tags :</span> Organic, Fresh, Bangladesh</p>
               <div className="flex items-center gap-4">
                 <span className="font-semibold">Share :</span>
-                <div className="flex gap-2">
-                  <span className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"><FaFacebookF size={14} /></span>
-                  <span className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"><FaTwitter size={14} /></span>
-                  <span className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"><FaInstagram size={14} /></span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Share on Facebook"
+                    onClick={shareFacebook}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"
+                  >
+                    <FaFacebookF size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Share on Twitter"
+                    onClick={shareTwitter}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"
+                  >
+                    <FaTwitter size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Share on Instagram"
+                    onClick={shareInstagram}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#1E7F57] text-white hover:bg-opacity-80"
+                  >
+                    <FaInstagram size={14} />
+                  </button>
+                  {linkCopied && (
+                    <span className="text-xs font-medium text-[#1E7F57]">
+                      Link copied!
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

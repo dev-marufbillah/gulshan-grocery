@@ -22,6 +22,58 @@ const DEMO_CATEGORIES: CategoryItem[] = [
   { id: "8", name: "Meat & Fish", slug: "meat-fish", icon: "🐟", count: 34 },
 ];
 
+// ছবির URL নাকি ইমোজি — সেটা ঠিকভাবে আলাদা করার জন্য
+function isImageUrl(value?: string) {
+  if (!value) return false;
+  const v = value.trim();
+  return (
+    v.startsWith("http://") ||
+    v.startsWith("https://") ||
+    v.startsWith("/") ||
+    v.startsWith("data:image")
+  );
+}
+
+// ══════════════════════════════════════════
+// একটি ক্যাটেগরি কার্ড (মোবাইল + ডেস্কটপ দুই জায়গাতেই ব্যবহার হয়)
+// ছবি বা ইমোজি — দুটোই একই সুন্দর স্কোয়ার ফ্রেমের ভেতরে বসে
+// ══════════════════════════════════════════
+function CategoryCard({ cat }: { cat: CategoryItem }) {
+  return (
+    <Link
+      href={`/shop?category=${cat.slug}`}
+      className="group/item flex h-full flex-col rounded-2xl border border-[#ececec] bg-white p-2 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#1E7F57]/40 hover:shadow-[0_12px_28px_-8px_rgba(30,127,87,0.25)] active:scale-[0.98] sm:p-3"
+    >
+      {/* Image / Emoji Frame */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#F1F7F4] transition-colors duration-300 group-hover/item:bg-[#E8F3EE]">
+        {isImageUrl(cat.icon) ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={cat.icon}
+            alt={cat.name}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover/item:scale-110"
+          />
+        ) : (
+          <span className="absolute inset-0 flex items-center justify-center text-4xl transition-transform duration-500 group-hover/item:scale-110 sm:text-6xl">
+            {cat.icon || "🛒"}
+          </span>
+        )}
+      </div>
+
+      {/* Text */}
+      <div className="flex flex-1 flex-col items-center px-1 pb-1 pt-2.5 text-center sm:pt-3.5">
+        <h3 className="line-clamp-1 text-[11px] font-bold text-[#1a1a1a] transition-colors group-hover/item:text-[#1E7F57] sm:text-base">
+          {cat.name}
+        </h3>
+        <span className="mt-1.5 rounded-full bg-[#E8F3EE] px-2 py-0.5 text-[9px] font-semibold text-[#1E7F57] sm:px-3 sm:py-1 sm:text-xs">
+          {cat.count ?? 0} Products
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default function CategoryRow({
   categories,
 }: {
@@ -33,7 +85,7 @@ export default function CategoryRow({
   const handleScroll = (direction: "left" | "right") => {
     const container = document.getElementById("category-scroll-container");
     if (container) {
-      const scrollAmount = direction === "left" ? -350 : 350;
+      const scrollAmount = direction === "left" ? -400 : 400;
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -41,7 +93,6 @@ export default function CategoryRow({
   return (
     <section className="bg-white py-10 sm:py-14 md:py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        
         {/* Section Header */}
         <div className="mb-8 sm:mb-10 md:mb-12 text-center relative">
           <p className="text-xs sm:text-sm font-medium tracking-wide text-[#6b6b6b]">
@@ -63,40 +114,16 @@ export default function CategoryRow({
         {/* ══════════════════════════════════════════
             মোবাইল: Grid (৩ কলাম) — প্রতি লাইনে ৩টি
            ══════════════════════════════════════════ */}
-        <div className="grid grid-cols-3 gap-x-4 gap-y-7 sm:hidden">
+        <div className="grid grid-cols-3 gap-2.5 sm:hidden">
           {displayCategories.map((cat) => (
-            <Link
-              key={cat.id || cat.slug}
-              href={`/shop?category=${cat.slug}`}
-              className="group/item flex flex-col items-center text-center"
-            >
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F4F4F4] transition-colors duration-300 group-active/item:bg-[#E8F3EE] group-hover/item:bg-[#E8F3EE]">
-                {cat.icon && cat.icon.length > 5 ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={cat.icon}
-                    alt={cat.name}
-                    className="h-11 w-11 object-contain"
-                  />
-                ) : (
-                  <span className="text-3xl">{cat.icon || "🛒"}</span>
-                )}
-              </div>
-              <h3 className="mt-2.5 text-xs font-bold leading-tight text-[#1a1a1a] group-hover/item:text-[#1E7F57]">
-                {cat.name}
-              </h3>
-              <p className="mt-0.5 text-[10px] text-[#8c8c8c]">
-                {cat.count ?? 0} Products
-              </p>
-            </Link>
+            <CategoryCard key={cat.id || cat.slug} cat={cat} />
           ))}
         </div>
 
         {/* ══════════════════════════════════════════
-            ট্যাবলেট + ডেস্কটপ: Horizontal Carousel (হুবহু আগেরটি)
+            ট্যাবলেট + ডেস্কটপ: Horizontal Carousel
            ══════════════════════════════════════════ */}
         <div className="relative group hidden sm:block">
-          
           {/* Left Arrow */}
           <button
             type="button"
@@ -109,37 +136,16 @@ export default function CategoryRow({
 
           <div
             id="category-scroll-container"
-            className="flex items-center gap-6 md:gap-10 lg:gap-12 overflow-x-auto py-4 px-1 scroll-smooth [&::-webkit-scrollbar]:hidden"
+            className="flex items-stretch gap-4 md:gap-5 lg:gap-6 overflow-x-auto px-2 py-6 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {displayCategories.map((cat) => (
-              <Link
+              <div
                 key={cat.id || cat.slug}
-                href={`/shop?category=${cat.slug}`}
-                className="group/item flex flex-col items-center shrink-0 text-center transition-transform duration-300 hover:-translate-y-1"
+                className="w-40 shrink-0 snap-start md:w-44 lg:w-48"
               >
-                <div className="flex h-28 w-28 md:h-36 md:w-36 lg:h-40 lg:w-40 items-center justify-center rounded-full bg-[#F4F4F4] transition-colors duration-300 group-hover/item:bg-[#E8F3EE]">
-                  {cat.icon && cat.icon.length > 5 ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={cat.icon}
-                      alt={cat.name}
-                      className="h-16 w-16 md:h-24 md:w-24 lg:h-28 lg:w-28 object-contain transition-transform duration-300 group-hover/item:scale-110"
-                    />
-                  ) : (
-                    <span className="text-5xl md:text-6xl lg:text-7xl transition-transform duration-300 group-hover/item:scale-110">
-                      {cat.icon || "🛒"}
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="mt-3 md:mt-4 text-sm md:text-base lg:text-lg font-bold text-[#1a1a1a] transition-colors group-hover/item:text-[#1E7F57]">
-                  {cat.name}
-                </h3>
-                <p className="mt-0.5 md:mt-1 text-[11px] md:text-sm text-[#8c8c8c]">
-                  {cat.count ?? 0} Products
-                </p>
-              </Link>
+                <CategoryCard cat={cat} />
+              </div>
             ))}
           </div>
 
@@ -163,7 +169,6 @@ export default function CategoryRow({
             See All Categories
           </Link>
         </div>
-
       </div>
     </section>
   );

@@ -18,7 +18,8 @@ export async function GET() {
     // @ts-expect-error session role
     const role = session?.user?.role;
 
-    if (role !== "admin") {
+    // ✅ admin এবং superadmin দুজনেই ঢুকতে পারবে
+    if (role !== "admin" && role !== "superadmin") {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
