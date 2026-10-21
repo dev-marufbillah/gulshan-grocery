@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore, useRef } from "react";
+import { useMemo, useState, useSyncExternalStore, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -140,7 +140,7 @@ const inputCls =
 
 export default function AccountClient() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [tab, setTab] = useState<Tab>("personal");
   const [saved, setSaved] = useState(false);
   const [sort, setSort] = useState("all");
@@ -189,15 +189,55 @@ export default function AccountClient() {
   }, [sessionOrderRaw]);
 
   // Personal State
-  const [firstName, setFirstName] = useState("Leslie");
-  const [lastName, setLastName] = useState("Cooper");
-  const [email, setEmail] = useState("example@gmail.com");
-  const [phone, setPhone] = useState("+880 1700-000000");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("Female");
-  
-  // Profile Photo Upload State
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Database Fetching (Fixed Database Data Mapping)
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) {
+          const parsed = await res.json();
+          const data = parsed.user || parsed;
+
+          // Fetch Name
+          const fullName = data?.name || session?.user?.name || "";
+          if (fullName) {
+            const parts = fullName.trim().split(" ");
+            setFirstName(parts[0] || "");
+            setLastName(parts.slice(1).join(" ") || "");
+          }
+
+          // Fetch Email
+          setEmail(data?.email || session?.user?.email || "");
+          
+          // Fetch Phone & Gender
+          if (data?.phone) setPhone(data.phone);
+          if (data?.gender) setGender(data.gender);
+
+          // Fetch Profile Pic
+          if (data?.image) {
+            setProfilePic(data.image);
+          } else if (session?.user?.image) {
+            setProfilePic(session.user.image);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchProfileData();
+    }
+  }, [status, session]);
 
   // Password State
   const [currentPass, setCurrentPass] = useState("");
@@ -219,8 +259,8 @@ export default function AccountClient() {
   const [aCity, setACity] = useState("Dhaka");
   const [aState, setAState] = useState("Dhaka Division");
   const [aZip, setAZip] = useState("1212");
-  const [aPhone, setAPhone] = useState("+880 1700-000000");
-  const [aEmail, setAEmail] = useState("example@gmail.com");
+  const [aPhone, setAPhone] = useState("");
+  const [aEmail, setAEmail] = useState("");
 
   // Payment State
   const [bkashLinked, setBkashLinked] = useState(false);
@@ -276,23 +316,80 @@ export default function AccountClient() {
     setACity("Dhaka");
     setAState("Dhaka Division");
     setAZip("1212");
-    setAPhone("+880 1700-000000");
-    setAEmail("example@gmail.com");
+    setAPhone("");
+    setAEmail("");
   };
 
-  // Image upload handler
+  // Image Upload and Compression
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setProfilePic(url);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_SIZE = 300;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        const compressedBase64 = canvas.toDataURL("image/webp", 0.75);
+        setProfilePic(compressedBase64);
+      };
+    };
   };
 
-  const handleUpdatePersonal = (e: React.FormEvent) => {
+  // Update Personal Handler
+  const handleUpdatePersonal = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    setIsUpdating(true);
+
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fullName,
+          phone,
+          gender,
+          image: profilePic,
+        }),
+      });
+
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+      } else {
+        alert("Failed to update profile. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong!");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleUpdatePassword = (e: React.FormEvent) => {
@@ -330,8 +427,8 @@ export default function AccountClient() {
     setACity("Dhaka");
     setAState("Dhaka Division");
     setAZip("1212");
-    setAPhone("+880 1700-000000");
-    setAEmail("example@gmail.com");
+    setAPhone("");
+    setAEmail("");
   };
 
   const handleDeleteAddress = (id: string) => {
@@ -383,11 +480,15 @@ export default function AccountClient() {
     setTimeout(() => setPayMsg(""), 2500);
   };
 
+  if (status === "loading") {
+    return <div className="py-20 text-center font-bold text-[#1E7F57]">Loading Profile...</div>;
+  }
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-8 md:py-14 md:px-6">
       <div className="grid gap-6 lg:grid-cols-[260px_1fr] lg:gap-12">
-        {/* Left menu - Swipeable horizontal scroll on mobile */}
-        <aside className="flex flex-row overflow-x-auto lg:flex-col gap-2.5 sm:gap-3 pb-3 lg:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* MOBILE/DESKTOP MENU - MODIFIED for wrapping on mobile */}
+        <aside className="flex flex-row flex-wrap justify-center lg:justify-start lg:flex-col gap-2 sm:gap-3 pb-4 lg:pb-0 border-b border-gray-200 lg:border-none mb-2 lg:mb-0">
           {menu.map((item) => {
             const active = tab === item.id;
             return (
@@ -395,7 +496,7 @@ export default function AccountClient() {
                 key={item.id}
                 type="button"
                 onClick={() => handleMenu(item.id)}
-                className={`shrink-0 whitespace-nowrap rounded-full lg:rounded-2xl px-5 sm:px-6 py-3 lg:py-4 text-center lg:text-left text-xs sm:text-sm font-semibold transition ${
+                className={`shrink-0 whitespace-nowrap rounded-full lg:rounded-2xl px-4 sm:px-6 py-2.5 lg:py-4 text-center lg:text-left text-xs sm:text-sm font-semibold transition ${
                   active
                     ? "bg-[#FBC617] text-[#1a1a1a] shadow-sm"
                     : "border border-[#e5e5e5] bg-white text-[#1a1a1a] hover:border-[#1E7F57]"
@@ -417,16 +518,23 @@ export default function AccountClient() {
           {tab === "personal" && (
             <form onSubmit={handleUpdatePersonal} className="max-w-2xl">
               <div className="mb-8 sm:mb-10 flex justify-center lg:justify-start">
-                <div className="relative">
-                  <div className="flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#d4ebe0] to-[#a8d4b8] text-4xl sm:text-5xl ring-4 ring-white shadow-md">
+                <div className="relative group">
+                  {/* MODIFIED: Clicking the whole picture directly opens file manager, and shows Initial Letter if no image */}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex h-24 w-24 sm:h-28 sm:w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-[#d4ebe0] to-[#a8d4b8] text-4xl sm:text-5xl font-bold text-[#1E7F57] ring-4 ring-white shadow-md transition-opacity group-hover:opacity-90"
+                    title="Click to upload photo"
+                  >
                     {profilePic ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={profilePic}
                         alt="Profile"
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      "👩"
+                      // Shows First Letter of Name (e.g. 'J' for 'John')
+                      firstName ? firstName.charAt(0).toUpperCase() : "U"
                     )}
                   </div>
                   <input
@@ -480,17 +588,16 @@ export default function AccountClient() {
                   required
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputCls}
+                  readOnly
+                  className={`${inputCls} bg-gray-50 opacity-70 cursor-not-allowed`}
                 />
               </div>
 
               <div className="mt-4 sm:mt-5">
                 <label className="mb-2 block text-xs sm:text-sm font-semibold text-[#1a1a1a]">
-                  Phone <span className="text-red-500">*</span>
+                  Phone
                 </label>
                 <input
-                  required
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -509,10 +616,10 @@ export default function AccountClient() {
                     onChange={(e) => setGender(e.target.value)}
                     className={`${inputCls} appearance-none bg-white`}
                   >
-                    <option>Female</option>
-                    <option>Male</option>
-                    <option>Other</option>
-                    <option>Prefer not to say</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
                   </select>
                   <ChevronDown
                     size={18}
@@ -529,9 +636,10 @@ export default function AccountClient() {
 
               <button
                 type="submit"
-                className="mt-6 sm:mt-8 w-full sm:w-auto rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white hover:bg-[#166b48] transition-colors"
+                disabled={isUpdating}
+                className="mt-6 sm:mt-8 w-full sm:w-auto rounded-full bg-[#1E7F57] px-10 py-3.5 text-sm font-semibold text-white hover:bg-[#166b48] transition-colors disabled:opacity-50"
               >
-                Update Changes
+                {isUpdating ? "Saving..." : "Update Changes"}
               </button>
             </form>
           )}
