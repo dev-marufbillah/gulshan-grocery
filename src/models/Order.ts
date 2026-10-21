@@ -1,32 +1,31 @@
-import { Schema, models, model } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
 const OrderSchema = new Schema(
   {
-    orderId: { type: String, required: true, unique: true },
-    customerName: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true },
+    userId: { type: String, required: true },
+    userEmail: { type: String, required: true },
+    userName: { type: String },
+    userPhone: { type: String },
     items: [
       {
-        id: { type: String },
         name: { type: String, required: true },
         price: { type: Number, required: true },
-        qty: { type: Number, required: true },
-        emoji: { type: String, default: "🛒" },
-        image: { type: String, default: "" },
-        weight: { type: String, default: "" },
+        quantity: { type: Number, required: true },
+        image: { type: String },
+        unit: { type: String },
       },
     ],
     totalAmount: { type: Number, required: true },
-    paymentMethod: { type: String, required: true },
     status: {
       type: String,
-      enum: ["Processing", "Accepted", "On the Way", "Delivered", "Cancelled"],
-      default: "Accepted",
+      enum: ["Pending", "Accepted", "Processing", "Delivered", "Cancel Requested", "Cancelled"],
+      default: "Pending",
     },
+    cancelReason: { type: String, default: "" },
+    cancelRequestedAt: { type: Date },
   },
   { timestamps: true }
 );
 
-export default models.Order || model("Order", OrderSchema);
+const Order = models.Order || model("Order", OrderSchema);
+export default Order;

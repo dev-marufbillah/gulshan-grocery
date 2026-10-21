@@ -38,7 +38,6 @@ export async function PUT(req: Request) {
 
     await connectDB();
 
-    // 🟢 FIXED: Removed 'any' and created a strict type for the update fields
     type UpdateFieldsType = {
       name?: string;
       phone?: string;

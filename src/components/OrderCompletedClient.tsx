@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Download, ShoppingBag } from "lucide-react";
+import { Check, Download, ShoppingBag, AlertCircle, X } from "lucide-react";
+import toast from "react-hot-toast";
 
 type OrderItem = {
   id: string;
@@ -24,6 +25,7 @@ type OrderSnapshot = {
   taxes: number;
   discount: number;
   total: number;
+  status?: string;
 };
 
 function readOrder(): OrderSnapshot | null {
@@ -38,8 +40,14 @@ function readOrder(): OrderSnapshot | null {
 }
 
 export default function OrderCompletedClient() {
-  // lazy init — একবারই পড়ে, infinite loop / setState-in-effect error নেই
   const [order] = useState<OrderSnapshot | null>(() => readOrder());
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<string>(
+    order?.status || "Accepted"
+  );
 
   if (!order) {
     return (
@@ -63,9 +71,38 @@ export default function OrderCompletedClient() {
     );
   }
 
+  const handleCancelRequest = async () => {
+    if (!reason.trim()) {
+      toast.error("Please enter a reason for cancellation");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.orderId, reason }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Cancellation request sent to Admin successfully!");
+        setOrderStatus("Cancel Requested");
+        setIsModalOpen(false);
+      } else {
+        toast.error(data.error || "Failed to submit cancellation request");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong while connecting to the server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
-      {/* Success Icon */}
       <div className="flex flex-col items-center text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FBC617] text-white shadow-lg">
           <Check size={40} strokeWidth={3} />
@@ -78,8 +115,19 @@ export default function OrderCompletedClient() {
         </p>
       </div>
 
-      {/* Yellow Info Bar */}
-      <div className="mt-10 flex flex-col gap-4 rounded-2xl bg-[#FBC617] p-5 md:flex-row md:items-center md:justify-between md:gap-0 md:p-0 md:py-3 md:pl-6 md:pr-3">
+      {orderStatus === "Cancel Requested" && (
+        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <AlertCircle className="shrink-0 text-amber-600" size={20} />
+          <div>
+            <p className="font-bold">Cancellation Pending Approval</p>
+            <p className="text-xs text-amber-700">
+              Your cancellation request has been sent to our admin. We will review it and contact you shortly.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 flex flex-col gap-4 rounded-2xl bg-[#FBC617] p-5 md:flex-row md:items-center md:justify-between md:gap-0 md:p-0 md:py-3 md:pl-6 md:pr-3">
         <div className="grid flex-1 grid-cols-2 gap-4 md:grid-cols-4 md:gap-0">
           <div className="md:border-r md:border-black/10 md:px-4 md:py-2">
             <p className="text-xs font-medium text-[#1a1a1a]/70">Order ID</p>
@@ -121,10 +169,18 @@ export default function OrderCompletedClient() {
         </button>
       </div>
 
-      {/* Order Details Card */}
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e5e5e5]">
-        <div className="border-b border-[#e5e5e5] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-[#e5e5e5] px-6 py-4">
           <h3 className="text-lg font-bold text-[#1a1a1a]">Order Details</h3>
+          
+          {orderStatus !== "Cancelled" && orderStatus !== "Cancel Requested" && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm font-semibold text-red-600 hover:underline"
+            >
+              Cancel Order
+            </button>
+          )}
         </div>
 
         <div className="hidden grid-cols-[1fr_120px] gap-4 border-b border-[#e5e5e5] px-6 py-3 text-sm font-semibold text-[#6b6b6b] sm:grid">
@@ -189,7 +245,6 @@ export default function OrderCompletedClient() {
         </div>
       </div>
 
-      {/* Actions */}
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
         <Link
           href="/shop"
@@ -204,6 +259,52 @@ export default function OrderCompletedClient() {
           Back to Home
         </Link>
       </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b pb-3">
+              <h3 className="text-lg font-bold text-[#1a1a1a]">
+                Cancel Order Request
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="mt-3 text-xs text-gray-500">
+              Please tell us why you want to cancel this order. Our admin team will review your request and get back to you.
+            </p>
+
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Enter reason for cancellation (e.g., Change of mind, ordered wrong item, address issue...)"
+              className="mt-4 h-28 w-full rounded-xl border border-gray-200 p-3 text-sm text-gray-800 focus:border-[#1E7F57] focus:outline-none focus:ring-1 focus:ring-[#1E7F57]"
+            />
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                disabled={loading}
+                className="rounded-full bg-gray-100 px-5 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-200"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleCancelRequest}
+                disabled={loading}
+                className="rounded-full bg-red-600 px-5 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {loading ? "Submitting..." : "Submit Cancellation Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

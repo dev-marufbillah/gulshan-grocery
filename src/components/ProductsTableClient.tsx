@@ -1,17 +1,17 @@
 "use client";
 
-/* eslint-disable react/no-unescaped-entities, @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import Link from "next/link";
-import { 
-  Edit, 
-  Trash2, 
-  Search, 
-  Sparkles, 
-  Tag, 
-  AlertTriangle, 
-  CheckCircle2, 
-  AlertCircle 
+import {
+  Edit,
+  Trash2,
+  Search,
+  Tag,
+  AlertTriangle,
+  CheckCircle2,
+  AlertCircle,
+  Zap,
 } from "lucide-react";
 
 export type AdminProduct = {
@@ -20,11 +20,12 @@ export type AdminProduct = {
   categoryName: string;
   price: number;
   oldPrice?: number;
-  isOffer?: boolean;
+  isDeal?: boolean; // ✅ Model field — isOffer নয়
+  hasDiscount?: boolean;
+  discountPercent?: number;
   weight?: string;
   stock?: number;
   image?: string;
-  emoji?: string;
 };
 
 export default function ProductsTableClient({
@@ -34,16 +35,14 @@ export default function ProductsTableClient({
 }) {
   const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "offers">("all");
+  const [filter, setFilter] = useState<"all" | "deals">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // 🌟 Toast Notification State
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
   } | null>(null);
 
-  // 🌟 Delete Confirmation Modal Popup State
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
@@ -54,19 +53,17 @@ export default function ProductsTableClient({
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Trigger Delete Modal
   const promptDelete = (id: string, name: string) => {
     setDeleteTarget({ id, name });
   };
 
-  // Perform Actual Delete
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
 
     setDeletingId(deleteTarget.id);
     try {
-      const res = await fetch(`/api/admin/products/${deleteTarget.id}`, { 
-        method: "DELETE" 
+      const res = await fetch(`/api/admin/products/${deleteTarget.id}`, {
+        method: "DELETE",
       });
       const data = await res.json();
 
@@ -74,7 +71,10 @@ export default function ProductsTableClient({
         setProducts((prev) => prev.filter((p) => p._id !== deleteTarget.id));
         showToast(`"${deleteTarget.name}" deleted successfully!`, "success");
       } else {
-        showToast(data.message || data.error || "Failed to delete product", "error");
+        showToast(
+          data.message || data.error || "Failed to delete product",
+          "error"
+        );
       }
     } catch (err) {
       console.error("Delete error", err);
@@ -85,25 +85,24 @@ export default function ProductsTableClient({
     }
   };
 
+  // ✅ Flash Deals = শুধু isDeal true
+  const dealCount = products.filter((p) => p.isDeal === true).length;
+
   const filteredProducts = products.filter((p) => {
+    const q = search.toLowerCase();
     const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.categoryName.toLowerCase().includes(search.toLowerCase());
+      p.name.toLowerCase().includes(q) ||
+      p.categoryName.toLowerCase().includes(q);
 
-    if (filter === "offers") {
-      return matchesSearch && (p.isOffer || (p.oldPrice && p.oldPrice > p.price));
+    if (filter === "deals") {
+      return matchesSearch && p.isDeal === true;
     }
-
     return matchesSearch;
   });
 
-  const offerCount = products.filter(
-    (p) => p.isOffer || (p.oldPrice && p.oldPrice > p.price)
-  ).length;
-
   return (
     <div className="space-y-4 relative">
-      {/* 🌟 Toast Notification */}
+      {/* Toast */}
       {toast && (
         <div
           className={`fixed top-6 right-6 z-50 flex items-center gap-3 rounded-2xl px-6 py-4 text-white shadow-2xl transition-all ${
@@ -119,7 +118,7 @@ export default function ProductsTableClient({
         </div>
       )}
 
-      {/* 🌟 CUSTOM DELETE CONFIRMATION MODAL POPUP */}
+      {/* Delete Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-[#e5e5e5] space-y-4">
@@ -128,13 +127,21 @@ export default function ProductsTableClient({
                 <AlertTriangle size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#1a1a1a]">Delete Product</h3>
-                <p className="text-xs text-[#6b6b6b]">Confirm permanent deletion</p>
+                <h3 className="text-lg font-bold text-[#1a1a1a]">
+                  Delete Product
+                </h3>
+                <p className="text-xs text-[#6b6b6b]">
+                  Confirm permanent deletion
+                </p>
               </div>
             </div>
 
             <p className="text-sm text-[#1a1a1a]">
-              Are you sure you want to delete &quot;<span className="font-bold text-[#1E7F57]">{deleteTarget.name}</span>&quot;? This action cannot be undone.
+              Are you sure you want to delete &quot;
+              <span className="font-bold text-[#1E7F57]">
+                {deleteTarget.name}
+              </span>
+              &quot;? This action cannot be undone.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#e5e5e5]">
@@ -165,7 +172,7 @@ export default function ProductsTableClient({
         </div>
       )}
 
-      {/* Search & Filter Bar */}
+      {/* Search & Filter */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-[#e5e5e5] bg-white p-4 shadow-xs">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3.5 top-3 text-gray-400" />
@@ -192,14 +199,15 @@ export default function ProductsTableClient({
           </button>
           <button
             type="button"
-            onClick={() => setFilter("offers")}
+            onClick={() => setFilter("deals")}
             className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition ${
-              filter === "offers"
-                ? "bg-red-600 text-white"
-                : "bg-red-50 text-red-600 hover:bg-red-100"
+              filter === "deals"
+                ? "bg-[#1E7F57] text-white"
+                : "bg-emerald-50 text-[#1E7F57] hover:bg-emerald-100"
             }`}
           >
-            <Sparkles size={14} /> Flash Deals ({offerCount})
+            <Zap size={14} />
+            Flash Deals ({dealCount})
           </button>
         </div>
       </div>
@@ -219,21 +227,28 @@ export default function ProductsTableClient({
                   <th className="px-4 py-3 font-semibold">Category</th>
                   <th className="px-4 py-3 font-semibold">Price</th>
                   <th className="px-4 py-3 font-semibold">Discount</th>
-                  <th className="px-4 py-3 font-semibold text-center">Offer Status</th>
+                  <th className="px-4 py-3 font-semibold">Stock</th>
                   <th className="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e5e5]">
                 {filteredProducts.map((p) => {
-                  const isOfferActive = p.isOffer || (p.oldPrice && p.oldPrice > p.price);
-                  const discount =
-                    p.oldPrice && p.oldPrice > p.price
-                      ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
-                      : null;
+                  const hasDiscount =
+                    typeof p.oldPrice === "number" &&
+                    p.oldPrice > p.price &&
+                    p.oldPrice > 0;
+                  const discount = hasDiscount
+                    ? Math.round(
+                        ((p.oldPrice! - p.price) / p.oldPrice!) * 100
+                      )
+                    : null;
 
                   return (
-                    <tr key={p._id} className="hover:bg-gray-50/80 transition">
-                      {/* Product Name & Image */}
+                    <tr
+                      key={p._id}
+                      className="hover:bg-gray-50/80 transition"
+                    >
+                      {/* Product */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100 border border-gray-100">
@@ -244,13 +259,28 @@ export default function ProductsTableClient({
                                 className="h-full w-full object-cover"
                               />
                             ) : (
-                              <span className="text-base">{p.emoji || "🛒"}</span>
+                              <span className="text-[10px] font-bold text-gray-400">
+                                N/A
+                              </span>
                             )}
                           </div>
-                          <div>
-                            <p className="font-bold text-gray-900">{p.name}</p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-gray-900 truncate">
+                                {p.name}
+                              </p>
+                              {/* ✅ শুধু isDeal true হলে ছোট clean badge */}
+                              {p.isDeal && (
+                                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[9px] font-bold text-[#1E7F57] uppercase tracking-wide">
+                                  <Zap size={10} />
+                                  Deal
+                                </span>
+                              )}
+                            </div>
                             {p.weight && (
-                              <p className="text-[10px] text-gray-400">{p.weight}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5">
+                                {p.weight}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -264,53 +294,59 @@ export default function ProductsTableClient({
                       {/* Price */}
                       <td className="px-4 py-3">
                         <div className="flex items-baseline gap-1.5">
-                          <span className="font-extrabold text-[#1E7F57]">৳{p.price}</span>
-                          {p.oldPrice && p.oldPrice > p.price ? (
+                          <span className="font-extrabold text-[#1E7F57]">
+                            ৳{p.price}
+                          </span>
+                          {hasDiscount && (
                             <span className="text-[10px] text-gray-400 line-through">
                               ৳{p.oldPrice}
                             </span>
-                          ) : null}
+                          )}
                         </div>
                       </td>
 
-                      {/* Discount Badge */}
+                      {/* Discount — শুধু আসল ছাড় থাকলে */}
                       <td className="px-4 py-3">
                         {discount ? (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
-                            <Tag size={11} /> {discount}% OFF
+                          <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 border border-orange-200 px-2 py-0.5 text-[10px] font-bold text-orange-600">
+                            <Tag size={11} />
+                            {discount}% OFF
                           </span>
                         ) : (
-                          <span className="text-[10px] text-gray-400">Regular</span>
+                          <span className="text-[10px] text-gray-300">—</span>
                         )}
                       </td>
 
-                      {/* Offer Status */}
-                      <td className="px-4 py-3 text-center">
-                        {isOfferActive ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
-                            <Sparkles size={11} /> HOT OFFER
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-medium text-gray-500">
-                            Normal
-                          </span>
-                        )}
+                      {/* Stock */}
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-[11px] font-semibold ${
+                            (p.stock ?? 0) <= 0
+                              ? "text-red-500"
+                              : (p.stock ?? 0) < 10
+                              ? "text-orange-500"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {p.stock ?? 0}
+                        </span>
                       </td>
 
-                      {/* Actions */}
+                      {/* Actions — clean */}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/products/${p._id}/edit`}
-                            className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-[#1E7F57] hover:bg-[#1E7F57] hover:text-white transition"
+                            className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-[#1E7F57] hover:bg-[#1E7F57] hover:text-white transition"
                           >
-                            <Edit size={13} /> Edit / Offer
+                            <Edit size={13} />
+                            Edit
                           </Link>
                           <button
                             type="button"
                             onClick={() => promptDelete(p._id, p.name)}
                             disabled={deletingId === p._id}
-                            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition"
+                            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-50"
                             title="Delete Product"
                           >
                             <Trash2 size={15} />

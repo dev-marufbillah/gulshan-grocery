@@ -1,52 +1,22 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
-import Order from "@/models/Order";
+import Order from "@/models/Order"; // Default import
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const body = await req.json();
-    const {
-      orderId,
-      customerName,
-      email,
-      phone,
-      address,
-      items,
-      totalAmount,
-      paymentMethod,
-    } = body;
-
-    if (!orderId || !items || items.length === 0 || !totalAmount) {
-      return NextResponse.json(
-        { error: "Order details are missing" },
-        { status: 400 }
-      );
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
 
-    const newOrder = await Order.create({
-      orderId,
-      customerName: customerName || "Guest Customer",
-      email: email || "customer@example.com",
-      phone: phone || "+880 1700-000000",
-      address: address || "Gulshan 1, Dhaka",
-      items,
-      totalAmount: Number(totalAmount),
-      paymentMethod: paymentMethod || "Cash On Delivery",
-      status: "Accepted",
-    });
+    const orders = await Order.find({ userEmail: session.user.email }).sort({ createdAt: -1 });
 
-    return NextResponse.json({
-      success: true,
-      message: "Order saved in database!",
-      order: newOrder,
-    });
-  } catch (err) {
-    console.error("Create Order Error:", err);
-    return NextResponse.json(
-      { error: "Failed to place order" },
-      { status: 500 }
-    );
+    return NextResponse.json({ orders }, { status: 200 });
+  } catch (error: unknown) {
+    console.error("Fetch orders error:", error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }

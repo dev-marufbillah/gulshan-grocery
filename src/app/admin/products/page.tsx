@@ -14,24 +14,38 @@ async function ProductsDataLoader() {
   await connection();
   await connectDB();
 
+  // ✅ isDeal select করুন (Model অনুযায়ী) — isOffer নয়
   const rawProducts = await Product.find({})
     .sort({ _id: -1 })
-    .select("name categoryName category price oldPrice isOffer weight stock image emoji")
+    .select(
+      "name categoryName category price oldPrice isDeal weight stock image"
+    )
     .lean();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const products: AdminProduct[] = rawProducts.map((p: any) => ({
-    _id: p._id.toString(),
-    name: p.name ?? "",
-    categoryName: p.categoryName || p.category || "Uncategorized",
-    price: p.price ?? 0,
-    oldPrice: p.oldPrice ?? 0,
-    isOffer: Boolean(p.isOffer || (p.oldPrice && p.oldPrice > p.price)),
-    weight: p.weight ?? "",
-    stock: p.stock ?? 0,
-    image: p.image ?? "",
-    emoji: p.emoji ?? "🛒",
-  }));
+  const products: AdminProduct[] = rawProducts.map((p: any) => {
+    const price = Number(p.price) || 0;
+    const oldPrice = Number(p.oldPrice) || 0;
+    const hasDiscount = oldPrice > price && oldPrice > 0;
+    const discountPercent = hasDiscount
+      ? Math.round(((oldPrice - price) / oldPrice) * 100)
+      : 0;
+
+    return {
+      _id: p._id.toString(),
+      name: p.name ?? "",
+      categoryName: p.categoryName || p.category || "Uncategorized",
+      price,
+      oldPrice,
+      // ✅ শুধু admin যেগুলোতে টিক দিয়েছে — auto-discount দিয়ে HOT OFFER না
+      isDeal: Boolean(p.isDeal),
+      hasDiscount,
+      discountPercent,
+      weight: p.weight ?? "",
+      stock: p.stock ?? 0,
+      image: p.image ?? "",
+    };
+  });
 
   return <ProductsTableClient initialProducts={products} />;
 }
@@ -40,7 +54,9 @@ function TableSkeleton() {
   return (
     <div className="rounded-2xl border border-[#e5e5e5] bg-white p-8 text-center shadow-xs">
       <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#1E7F57] border-t-transparent" />
-      <p className="mt-4 text-sm text-[#6b6b6b]">Loading products &amp; offers...</p>
+      <p className="mt-4 text-sm text-[#6b6b6b]">
+        Loading products &amp; offers...
+      </p>
     </div>
   );
 }
@@ -50,7 +66,9 @@ export default function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a]">Products &amp; Special Offers</h1>
+          <h1 className="text-2xl font-bold text-[#1a1a1a]">
+            Products &amp; Special Offers
+          </h1>
           <p className="text-sm text-[#6b6b6b]">
             Manage products, discount pricing, and flash deals.
           </p>

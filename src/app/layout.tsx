@@ -4,6 +4,7 @@ import Providers from "@/components/Providers";
 import Footer from "@/components/Footer";
 import Newsletter from "@/components/Newsletter";
 import NewsletterPopup from "@/components/NewsletterPopup";
+import { Toaster } from "react-hot-toast"; // <-- ইমপোর্ট করা হলো
 import "./globals.css";
 
 export default function RootLayout({
@@ -22,6 +23,9 @@ export default function RootLayout({
           <Newsletter />
           <Footer />
           <NewsletterPopup />
+          
+          {/* টোস্ট নোটিফিকেশন দেখানোর জন্য Toaster যোগ করা হলো */}
+          <Toaster position="top-center" reverseOrder={false} />
         </Providers>
       </body>
     </html>

@@ -105,9 +105,9 @@ export default function ProductCard({ product }: { product: ProductItem }) {
   return (
     <div className="group relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-[#ececec] bg-white p-2.5 sm:p-4 transition-all duration-300 hover:border-[#1E7F57] hover:shadow-xl">
       {/* 1. Top Badges */}
-      <div className="flex items-center justify-between z-10">
+      <div className="flex items-center justify-between z-10 absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4">
         {discount > 0 ? (
-          <span className="rounded-lg bg-[#1E7F57] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold text-white">
+          <span className="rounded-lg bg-[#1E7F57] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-xs">
             {discount}% off
           </span>
         ) : (
@@ -128,27 +128,31 @@ export default function ProductCard({ product }: { product: ProductItem }) {
         </button>
       </div>
 
-      {/* 2. Image Container */}
+      {/* 2. FIXED FORMAT Square Image Box */}
       <Link
         href={`/product/${productSlug}`}
-        className="my-1 sm:my-2 flex h-28 sm:h-44 w-full items-center justify-center bg-white p-1 sm:p-2 transition-transform duration-300 group-hover:scale-105 relative"
+        className="relative mt-1 mb-3 block w-full overflow-hidden rounded-xl bg-[#f4f4f4]"
       >
-        {product.image && product.image.length > 5 ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={product.image}
-            alt={product.name}
-            className="max-h-full max-w-full object-contain"
-          />
-        ) : (
-          <span className="text-4xl sm:text-7xl">{product.emoji || "🛒"}</span>
-        )}
+        <div className="aspect-square w-full">
+          {product.image && product.image.length > 5 ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={product.image}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[#f0f0f0] text-4xl sm:text-6xl">
+              {product.emoji || "🛒"}
+            </div>
+          )}
+        </div>
       </Link>
 
       {/* 3. Product Info */}
-      <div className="mt-1">
+      <div className="mt-auto">
         <div className="flex items-center justify-between text-[10px] sm:text-xs font-semibold">
-          <span className="text-[#1E7F57] truncate max-w-20 sm:max-w-30">{categoryDisplayName}</span>
+          <span className="text-[#1E7F57] truncate max-w-[60%]">{categoryDisplayName}</span>
           <span className="flex items-center font-bold text-[#1a1a1a]">
             <Star size={12} fill="#FBC617" className="mr-0.5 text-[#FBC617] sm:w-3.5 sm:h-3.5" />
             {product.rating ? product.rating.toFixed(1) : "4.8"}
@@ -156,7 +160,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
         </div>
 
         <Link href={`/product/${productSlug}`}>
-          <h3 className="mt-1 line-clamp-2 sm:line-clamp-1 text-xs sm:text-base font-bold text-[#1a1a1a] transition-colors group-hover:text-[#1E7F57] min-h-8 sm:min-h-0">
+          <h3 className="mt-1 line-clamp-1 text-xs sm:text-base font-bold text-[#1a1a1a] transition-colors group-hover:text-[#1E7F57]">
             {product.name}
           </h3>
         </Link>
